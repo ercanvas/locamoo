@@ -41,7 +41,7 @@ export default function Home() {
     setUsername(username);
     setIsAuthenticated(true);
 
-    if (isSpectator) {
+    if (isSpectator === 'true') { // Added strict comparison
       // Disable interactive features for spectators
       setGameStarted(false);
       setShowDonate(false);

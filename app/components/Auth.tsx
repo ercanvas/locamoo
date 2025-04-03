@@ -26,7 +26,7 @@ export default function Auth() {
     const handleSpectatorMode = () => {
         localStorage.setItem('username', 'spectator');
         localStorage.setItem('isSpectator', 'true');
-        router.replace('/');
+        router.push('/'); // Changed from replace to push
     };
 
     return (
