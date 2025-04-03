@@ -1,10 +1,19 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { MongoClient } from 'mongodb';
 
-const wss = new WebSocketServer({ port: 3001 });
-const uri = process.env.MONGODB_URI || 'mongodb+srv://yarmaciercanyasin:r4mq6uNgzIPev856@cluster0.1woykrh.mongodb.net/locamoo?retryWrites=true&w=majority';
-console.log('MongoDB URI:', uri.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
-const client = new MongoClient(uri);
+// Update port for Render
+const PORT = process.env.PORT || 3001;
+const wss = new WebSocketServer({ port: Number(PORT) });
+
+// Update MongoDB options
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/locamoo';
+const client = new MongoClient(uri, {
+    ssl: true,
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    retryWrites: true,
+    w: 'majority'
+});
 
 interface QueuePlayer {
     ws: WebSocket;
@@ -23,6 +32,8 @@ async function init() {
     try {
         await client.connect();
         console.log('MongoDB connected successfully');
+        console.log(`WebSocket server is running on port ${PORT}`);
+
         const db = client.db('locamoo');
 
         wss.on('connection', (ws: WebSocket) => {
@@ -69,7 +80,6 @@ async function init() {
             broadcastStats();
         });
 
-        console.log('WebSocket server is running on port 3001');
     } catch (error) {
         console.error('Server initialization error:', error);
     }

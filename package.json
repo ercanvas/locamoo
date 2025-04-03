@@ -2,17 +2,15 @@
   "name": "locamoo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate:user-status": "ts-node --project tsconfig.json scripts/migrations/updateUserStatus.ts",
-    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts",
-    "start:frontend": "next start",
-    "start:server": "ts-node -P server/tsconfig.server.json server/websocket.ts",
-    "build:frontend": "next build",
-    "build:server": "tsc -P server/tsconfig.server.json"
+    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
