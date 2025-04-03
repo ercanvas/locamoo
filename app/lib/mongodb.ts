@@ -10,8 +10,9 @@ export async function getDb(): Promise<Db> {
 
     const opts = {
         maxPoolSize: 10,
-        connectTimeoutMS: 10000,
-        socketTimeoutMS: 10000,
+        connectTimeoutMS: 5000,  // Reduced from 10000
+        socketTimeoutMS: 5000,   // Reduced from 10000
+        serverSelectionTimeoutMS: 5000, // Added server selection timeout
     };
 
     try {

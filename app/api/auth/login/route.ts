@@ -3,7 +3,7 @@ import { getDb } from '@/app/lib/mongodb';
 import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
-export const maxDuration = 15;
+export const maxDuration = 30; // Increased from 15 to 30 seconds
 
 export async function POST(request: Request) {
     try {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
         const user = await db.collection('users').findOne(
             { email: email.toLowerCase().trim() },
             {
-                maxTimeMS: 5000,
+                maxTimeMS: 3000, // Reduced from 5000 to 3000ms
                 projection: { password: 1, username: 1 }  // Only fetch needed fields
             }
         );
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     } catch (error: any) {
         console.error('Login error:', error);
 
-        if (error.name === 'MongoTimeoutError') {
+        if (error.name === 'MongoTimeoutError' || error.code === 'ETIMEDOUT') {
             return NextResponse.json(
                 { success: false, message: 'Database timeout. Please try again.' },
                 { status: 504 }
