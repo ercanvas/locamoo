@@ -52,21 +52,14 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         e.preventDefault();
         setError('');
 
-        if (!email || !password) {
-            setError('Please fill in all fields');
-            return;
-        }
-
         try {
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: email.toLowerCase().trim(),
-                    password: password.trim(),
-                }),
+                    password: password.trim()
+                })
             });
 
             const data = await response.json();

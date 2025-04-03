@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/app/lib/mongodb';
 import bcrypt from 'bcryptjs';
 
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
     try {
         const { email, password } = await request.json();
-        console.log('Login attempt:', { email });
 
         if (!email || !password) {
             return NextResponse.json({
@@ -17,10 +17,7 @@ export async function POST(request: Request) {
         }
 
         const db = await getDb();
-
-        const user = await db.collection('users').findOne({
-            email: email.toLowerCase().trim()
-        });
+        const user = await db.collection('users').findOne({ email: email.toLowerCase() });
 
         if (!user) {
             return NextResponse.json({
@@ -38,28 +35,16 @@ export async function POST(request: Request) {
             }, { status: 401 });
         }
 
-        const response = NextResponse.json({
+        return NextResponse.json({
             success: true,
-            message: "Login successful",
             username: user.username
         });
-
-        response.cookies.set('username', user.username, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 60 * 60 * 24 * 7
-        });
-
-        return response;
 
     } catch (error) {
         console.error('Login error:', error);
         return NextResponse.json({
             success: false,
-            message: "Internal server error",
-            error: error instanceof Error ? error.message : "Unknown error"
+            message: "An error occurred during login"
         }, { status: 500 });
     }
 }
