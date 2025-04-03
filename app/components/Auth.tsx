@@ -52,88 +52,39 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         e.preventDefault();
         setError('');
 
-        if (!isFirstTime) {
-            // Validate passkey format before sending
-            if (!/^\d{6}$/.test(passkey)) {
-                setError('Please enter exactly 6 digits');
-                return;
+        if (!email || !password) {
+            setError('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email.toLowerCase().trim(),
+                    password: password.trim(),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Login failed');
             }
 
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({ passkey }),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('username', data.username);
-                    onAuthSuccess({ username: data.username });
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (err: any) {
-                setError(err.message || 'Login failed');
-                console.error('Login error:', err);
-            }
-        } else {
-            if (isLogin) {
-                try {
-                    // Basic validation
-                    if (!email || !password) {
-                        setError('Please fill in all fields');
-                        return;
-                    }
-
-                    const response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            email: email.toLowerCase().trim(),
-                            password: password.trim(),
-                        }),
-                    });
-
-                    const data = await response.json();
-                    console.log('Login response:', data); // Debug log
-
-                    if (response.ok) {
-                        localStorage.setItem('username', data.username);
-                        onAuthSuccess({ username: data.username });
-                    } else {
-                        throw new Error(data.message || 'Login failed');
-                    }
-                } catch (err: any) {
-                    console.error('Login error:', err);
-                    setError(err.message || 'An error occurred during login');
-                }
+            if (data.success) {
+                localStorage.setItem('username', data.username);
+                onAuthSuccess({ username: data.username });
             } else {
-                try {
-                    const response = await fetch('/api/auth/passkey', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ passkey }),
-                    });
-
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.message);
-
-                    // Store data and redirect
-                    if (data.username) {
-                        onAuthSuccess({ username: data.username });
-                    }
-                } catch (err: any) {
-                    setError(err.message);
-                    console.error('Auth error:', err);
-                }
+                throw new Error(data.message || 'Login failed');
             }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'An error occurred';
+            setError(message);
+            console.error('Login error:', err);
         }
     };
 

@@ -2,45 +2,48 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/app/lib/mongodb';
 import bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
     try {
         const { email, password } = await request.json();
         console.log('Login attempt:', { email });
 
+        if (!email || !password) {
+            return NextResponse.json({
+                success: false,
+                message: "Email and password are required"
+            }, { status: 400 });
+        }
+
         const db = await getDb();
 
-        // Find user
         const user = await db.collection('users').findOne({
             email: email.toLowerCase().trim()
         });
 
-        console.log('User found:', !!user);
-
         if (!user) {
-            return NextResponse.json(
-                { message: 'User not found' },
-                { status: 401 }
-            );
+            return NextResponse.json({
+                success: false,
+                message: "Invalid credentials"
+            }, { status: 401 });
         }
 
-        // Verify password
         const isValid = await bcrypt.compare(password, user.password);
-        console.log('Password valid:', isValid);
 
         if (!isValid) {
-            return NextResponse.json(
-                { message: 'Invalid password' },
-                { status: 401 }
-            );
+            return NextResponse.json({
+                success: false,
+                message: "Invalid credentials"
+            }, { status: 401 });
         }
 
-        // Success response
         const response = NextResponse.json({
-            status: 'success',
+            success: true,
+            message: "Login successful",
             username: user.username
         });
 
-        // Set cookie
         response.cookies.set('username', user.username, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -51,12 +54,19 @@ export async function POST(request: Request) {
 
         return response;
 
-    } catch (error: unknown) {
+    } catch (error) {
         console.error('Login error:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-        return NextResponse.json(
-            { message: 'Login failed', error: errorMessage },
-            { status: 500 }
-        );
+        return NextResponse.json({
+            success: false,
+            message: "Internal server error",
+            error: error instanceof Error ? error.message : "Unknown error"
+        }, { status: 500 });
     }
+}
+
+export async function GET() {
+    return NextResponse.json({
+        success: false,
+        message: "Method not allowed"
+    }, { status: 405 });
 }
