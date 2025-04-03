@@ -52,15 +52,26 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         e.preventDefault();
         setError('');
 
+        if (!email || !password) {
+            setError('Please fill in all fields');
+            return;
+        }
+
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: email.toLowerCase().trim(),
                     password: password.trim()
-                })
+                }),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             const data = await response.json();
 
@@ -75,7 +86,9 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 throw new Error(data.message || 'Login failed');
             }
         } catch (err) {
-            const message = err instanceof Error ? err.message : 'An error occurred';
+            const message = err instanceof Error ? 
+                err.message : 
+                'Connection timeout. Please try again.';
             setError(message);
             console.error('Login error:', err);
         }

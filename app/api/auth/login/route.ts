@@ -4,48 +4,83 @@ import bcrypt from 'bcryptjs';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 
 export async function POST(request: Request) {
     try {
         const { email, password } = await request.json();
 
         if (!email || !password) {
-            return NextResponse.json({
-                success: false,
-                message: "Email and password are required"
-            }, { status: 400 });
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    message: 'Email and password are required'
+                }),
+                {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
         }
 
         const db = await getDb();
-        const user = await db.collection('users').findOne({ email: email.toLowerCase() });
+        const user = await db.collection('users').findOne({
+            email: email.toLowerCase().trim()
+        });
 
         if (!user) {
-            return NextResponse.json({
-                success: false,
-                message: "Invalid credentials"
-            }, { status: 401 });
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    message: 'Invalid credentials'
+                }),
+                {
+                    status: 401,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
         }
 
         const isValid = await bcrypt.compare(password, user.password);
 
         if (!isValid) {
-            return NextResponse.json({
-                success: false,
-                message: "Invalid credentials"
-            }, { status: 401 });
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    message: 'Invalid credentials'
+                }),
+                {
+                    status: 401,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
         }
 
-        return NextResponse.json({
-            success: true,
-            username: user.username
-        });
+        const response = new Response(
+            JSON.stringify({
+                success: true,
+                username: user.username
+            }),
+            {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
+
+        return response;
 
     } catch (error) {
         console.error('Login error:', error);
-        return NextResponse.json({
-            success: false,
-            message: "An error occurred during login"
-        }, { status: 500 });
+        return new Response(
+            JSON.stringify({
+                success: false,
+                message: 'An internal server error occurred'
+            }),
+            {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
     }
 }
 
