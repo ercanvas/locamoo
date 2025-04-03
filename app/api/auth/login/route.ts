@@ -2,84 +2,51 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/app/lib/mongodb';
 import bcrypt from 'bcryptjs';
 
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
+export const maxDuration = 10;
 
 export async function POST(request: Request) {
     try {
         const { email, password } = await request.json();
-
+        
         if (!email || !password) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    message: 'Email and password are required'
-                }),
-                {
-                    status: 400,
-                    headers: { 'Content-Type': 'application/json' }
-                }
+            return NextResponse.json(
+                { success: false, message: 'Email and password are required' },
+                { status: 400 }
             );
         }
 
         const db = await getDb();
-        const user = await db.collection('users').findOne({
-            email: email.toLowerCase().trim()
-        });
-
-        if (!user) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    message: 'Invalid credentials'
-                }),
-                {
-                    status: 401,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
-        }
-
-        const isValid = await bcrypt.compare(password, user.password);
-
-        if (!isValid) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    message: 'Invalid credentials'
-                }),
-                {
-                    status: 401,
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
-        }
-
-        const response = new Response(
-            JSON.stringify({
-                success: true,
-                username: user.username
-            }),
-            {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
+        const user = await db.collection('users').findOne(
+            { email: email.toLowerCase().trim() },
+            { maxTimeMS: 5000 }
         );
 
-        return response;
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return NextResponse.json(
+                { success: false, message: 'Invalid credentials' },
+                { status: 401 }
+            );
+        }
 
-    } catch (error) {
+        return NextResponse.json({
+            success: true,
+            username: user.username
+        });
+
+    } catch (error: any) {
         console.error('Login error:', error);
-        return new Response(
-            JSON.stringify({
-                success: false,
-                message: 'An internal server error occurred'
-            }),
-            {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            }
+        
+        if (error.name === 'MongoTimeoutError') {
+            return NextResponse.json(
+                { success: false, message: 'Database timeout. Please try again.' },
+                { status: 504 }
+            );
+        }
+
+        return NextResponse.json(
+            { success: false, message: 'An internal server error occurred' },
+            { status: 500 }
         );
     }
 }
