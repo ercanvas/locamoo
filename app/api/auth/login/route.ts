@@ -25,10 +25,31 @@ export async function POST(request: Request) {
             }
         );
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        console.log('Login attempt:', { email, foundUser: !!user });
+
+        if (!user || !user.password) {
+            console.log('User not found or missing password');
             return NextResponse.json(
                 { success: false, message: 'Invalid credentials' },
                 { status: 401 }
+            );
+        }
+
+        try {
+            const isValidPassword = await bcrypt.compare(password, user.password);
+            console.log('Password check result:', { isValid: isValidPassword });
+
+            if (!isValidPassword) {
+                return NextResponse.json(
+                    { success: false, message: 'Invalid credentials' },
+                    { status: 401 }
+                );
+            }
+        } catch (bcryptError) {
+            console.error('bcrypt compare error:', bcryptError);
+            return NextResponse.json(
+                { success: false, message: 'Authentication error' },
+                { status: 500 }
             );
         }
 
