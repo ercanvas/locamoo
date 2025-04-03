@@ -1,18 +1,22 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { MongoClient } from 'mongodb';
 
-// Update port for Render
 const PORT = process.env.PORT || 3001;
 const wss = new WebSocketServer({ port: Number(PORT) });
 
-// Update MongoDB options
-const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/locamoo';
-const client = new MongoClient(uri, {
+// Update MongoDB connection options
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri!, {
     ssl: true,
     tls: true,
-    tlsAllowInvalidCertificates: false,
+    tlsAllowInvalidCertificates: true, // Add this for development
     retryWrites: true,
-    w: 'majority'
+    w: 'majority',
+    serverApi: {
+        version: '1',
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 interface QueuePlayer {
@@ -30,9 +34,11 @@ let onlinePlayers = new Map<string, WebSocket>();
 
 async function init() {
     try {
+        console.log('Connecting to MongoDB...');
         await client.connect();
+        await client.db("admin").command({ ping: 1 });
         console.log('MongoDB connected successfully');
-        console.log(`WebSocket server is running on port ${PORT}`);
+        console.log(`WebSocket server running on port ${PORT}`);
 
         const db = client.db('locamoo');
 
@@ -82,6 +88,12 @@ async function init() {
 
     } catch (error) {
         console.error('Server initialization error:', error);
+        // Add error details
+        if (error instanceof Error) {
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
     }
 }
 
