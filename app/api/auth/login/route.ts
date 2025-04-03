@@ -39,12 +39,22 @@ export async function POST(request: Request) {
             );
         }
 
-        // Success - return user data
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
             username: user.username,
             message: "Login successful"
         });
+
+        // Set auth cookie
+        response.cookies.set('username', user.username, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7 // 7 days
+        });
+
+        return response;
 
     } catch (error) {
         console.error('Login error:', error);

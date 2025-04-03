@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface AuthProps {
     onAuthSuccess: (user: { username: string }) => void;
 }
 
 export default function Auth({ onAuthSuccess }: AuthProps) {
+    const router = useRouter();
     const [isFirstTime, setIsFirstTime] = useState(true);
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
@@ -52,50 +54,29 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         e.preventDefault();
         setError('');
 
-        if (!email || !password) {
-            setError('Please fill in all fields');
-            return;
-        }
-
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort('Request timeout');
-            }, 15000); // Increase to 15s timeout
-
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: email.toLowerCase().trim(),
                     password: password.trim()
-                }),
-                signal: controller.signal
+                })
             });
 
-            clearTimeout(timeoutId);
+            const data = await response.json();
 
             if (!response.ok) {
-                if (response.status === 504) {
-                    throw new Error('Server timeout. Please try again.');
-                }
-                const data = await response.json();
-                throw new Error(data.message || 'Authentication failed');
+                throw new Error(data.message || 'Login failed');
             }
 
-            const data = await response.json();
             if (data.success) {
                 localStorage.setItem('username', data.username);
-                onAuthSuccess({ username: data.username });
-            } else {
-                throw new Error(data.message || 'Authentication failed');
+                router.replace('/');
             }
+
         } catch (err: any) {
-            setError(
-                err.name === 'AbortError' ?
-                    'Request timed out. Please try again.' :
-                    err.message || 'An error occurred'
-            );
+            setError(err.message || 'Login failed');
             console.error('Login error:', err);
         }
     };
