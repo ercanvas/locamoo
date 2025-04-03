@@ -4,32 +4,31 @@ import { getDb } from '@/app/lib/mongodb';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        console.log('Passkey attempt:', body);
+        console.log('Auth attempt:', { type: 'passkey' });
 
         if (!body.passkey) {
             return NextResponse.json(
-                { message: 'Passkey is required' },
+                { success: false, message: 'Passkey is required' },
                 { status: 400 }
             );
         }
 
-        const passkey = body.passkey.toString().trim();
-        console.log('Checking passkey:', passkey);
-
         const db = await getDb();
-        const user = await db.collection('users').findOne({ passkey });
+        const user = await db.collection('users').findOne(
+            { passkey: body.passkey.toString() },
+            { projection: { username: 1 } }
+        );
 
         if (!user) {
             return NextResponse.json(
-                { message: 'Invalid passkey' },
+                { success: false, message: 'Invalid passkey' },
                 { status: 401 }
             );
         }
 
         const response = NextResponse.json({
-            status: 'success',
-            username: user.username,
-            email: user.email
+            success: true,
+            username: user.username
         });
 
         response.cookies.set('username', user.username, {
@@ -37,16 +36,22 @@ export async function POST(request: Request) {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
-            maxAge: 60 * 60 * 24 * 7
+            maxAge: 60 * 60 * 24 * 7 // 7 days
         });
 
         return response;
-
     } catch (error) {
-        console.error('Passkey login error:', error);
+        console.error('Auth error:', error);
         return NextResponse.json(
-            { message: 'Authentication failed' },
+            { success: false, message: 'Authentication failed' },
             { status: 500 }
         );
     }
+}
+
+export async function GET() {
+    return NextResponse.json(
+        { success: false, message: 'Method not allowed' },
+        { status: 405 }
+    );
 }

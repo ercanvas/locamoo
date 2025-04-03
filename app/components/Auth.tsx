@@ -137,6 +137,40 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         }
     };
 
+    const handlePasskeySubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        if (!passkey) {
+            setError('Passkey is required');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/passkey', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ passkey }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Authentication failed');
+            }
+
+            const data = await response.json();
+            if (data.success && data.username) {
+                localStorage.setItem('hasPasskey', 'true');
+                localStorage.setItem('username', data.username);
+                onAuthSuccess({ username: data.username });
+            }
+        } catch (err: any) {
+            setError(err.message || 'Authentication failed');
+            console.error('Auth error:', err);
+        }
+    };
+
     // Check if user has passkey
     useEffect(() => {
         const hasPasskey = localStorage.getItem('hasPasskey');
@@ -158,7 +192,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
                 {!isFirstTime ? (
                     // Passkey login form
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handlePasskeySubmit} className="space-y-4">
                         <div>
                             <label className="text-gray-400 text-sm">Enter your 6-digit passkey</label>
                             <input

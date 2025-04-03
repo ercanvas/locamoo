@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts"
+    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts",
+    "seed": "ts-node scripts/seed-test-user.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
