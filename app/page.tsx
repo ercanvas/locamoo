@@ -31,6 +31,8 @@ export default function Home() {
   // Update auth check
   useEffect(() => {
     const username = localStorage.getItem('username');
+    const isSpectator = localStorage.getItem('isSpectator');
+
     if (!username) {
       setIsLoading(false);
       router.replace('/auth');
@@ -38,6 +40,14 @@ export default function Home() {
     }
     setUsername(username);
     setIsAuthenticated(true);
+
+    if (isSpectator) {
+      // Disable interactive features for spectators
+      setGameStarted(false);
+      setShowDonate(false);
+      setShowReminder(false);
+    }
+
     setIsLoading(false);
   }, [router]);
 
