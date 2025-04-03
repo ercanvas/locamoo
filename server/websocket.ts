@@ -4,23 +4,15 @@ import { MongoClient } from 'mongodb';
 const PORT = process.env.PORT || 3001;
 const wss = new WebSocketServer({ port: Number(PORT) });
 
-// Update MongoDB options - remove directConnection
+// Simplified MongoDB connection options
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri!, {
     ssl: true,
     tls: true,
-    retryWrites: true,
-    minPoolSize: 0,
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 30000,
-    replicaSet: 'atlas-ejl9lb-shard-0',
-    authSource: 'admin',
-    w: 'majority',
     serverApi: {
         version: '1',
         strict: true,
-        deprecationErrors: true,
+        deprecationErrors: true
     }
 });
 

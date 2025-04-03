@@ -4,13 +4,15 @@ services:
     env: node
     buildCommand: |
       npm install
-      npm install -g ts-node typescript
+      npm install -g ts-node typescript @types/node
     startCommand: npm run server
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://yarmaciercanyasin:r4mq6uNgzIPev856@cluster0.1woykrh.mongodb.net/locamoo?retryWrites=true&w=majority&authSource=admin&replicaSet=atlas-ejl9lb-shard-0&tls=true
+        value: mongodb+srv://yarmaciercanyasin:r4mq6uNgzIPev856@cluster0.1woykrh.mongodb.net/locamoo?retryWrites=true&w=majority
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: NODE_TLS_REJECT_UNAUTHORIZED
+        value: "0"
     autoDeploy: true
