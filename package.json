@@ -3,14 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=18.x"
+    "node": "18.x"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

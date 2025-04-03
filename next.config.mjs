@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['localhost'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: '**',
+            },
+        ],
         unoptimized: true
     },
     typescript: {
@@ -9,6 +14,9 @@ const nextConfig = {
     },
     eslint: {
         ignoreDuringBuilds: true
+    },
+    experimental: {
+        serverActions: true
     }
 };
 
