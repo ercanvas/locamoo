@@ -59,7 +59,9 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+            const timeoutId = setTimeout(() => {
+                controller.abort('Request timeout');
+            }, 15000); // Increase to 15s timeout
 
             const response = await fetch('/api/auth/login', {
                 method: 'POST',
@@ -73,23 +75,27 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
             clearTimeout(timeoutId);
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                if (response.status === 504) {
+                    throw new Error('Server timeout. Please try again.');
+                }
+                const data = await response.json();
+                throw new Error(data.message || 'Authentication failed');
             }
 
+            const data = await response.json();
             if (data.success) {
                 localStorage.setItem('username', data.username);
                 onAuthSuccess({ username: data.username });
             } else {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.message || 'Authentication failed');
             }
-        } catch (err) {
-            const message = err instanceof Error ? 
-                err.message : 
-                'Connection timeout. Please try again.';
-            setError(message);
+        } catch (err: any) {
+            setError(
+                err.name === 'AbortError' ?
+                    'Request timed out. Please try again.' :
+                    err.message || 'An error occurred'
+            );
             console.error('Login error:', err);
         }
     };

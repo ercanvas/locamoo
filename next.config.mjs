@@ -16,7 +16,20 @@ const nextConfig = {
         ignoreDuringBuilds: true
     },
     experimental: {
-        serverActions: true
+        serverActions: true,
+        serverComponentsExternalPackages: ['mongodb'],
+        outputStandalone: true,
+        timeoutInMs: 15000,
+    },
+    serverRuntimeConfig: {
+        mongodb: {
+            uri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/locamoo',
+            options: {
+                connectTimeoutMS: 10000,
+                socketTimeoutMS: 10000,
+                maxPoolSize: 10,
+            }
+        }
     }
 };
 
