@@ -7,6 +7,7 @@ import Image from 'next/image';
 export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -16,18 +17,31 @@ export default function Auth() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+        setError('');
 
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            body: JSON.stringify(formData),
-            headers: { 'Content-Type': 'application/json' }
-        });
+        try {
+            const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                body: JSON.stringify(formData),
+                headers: { 'Content-Type': 'application/json' }
+            });
 
-        const data = await res.json();
-        if (data.success) {
-            localStorage.setItem('username', data.username);
-            router.push('/');
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || 'Authentication failed');
+            }
+
+            if (data.success) {
+                localStorage.setItem('username', data.username);
+                router.push('/');
+            } else {
+                throw new Error(data.message || 'Authentication failed');
+            }
+        } catch (err: any) {
+            setError(err.message || 'An error occurred');
+            console.error('Auth error:', err);
         }
     };
 
@@ -52,6 +66,12 @@ export default function Auth() {
                         {isLogin ? 'Welcome Back!' : 'Create Account'}
                     </h1>
                 </div>
+
+                {error && (
+                    <div className="bg-red-500/20 border border-red-500 text-red-500 p-3 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {!isLogin && (

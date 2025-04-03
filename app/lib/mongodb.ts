@@ -9,7 +9,16 @@ export async function getDb(): Promise<Db> {
     if (cachedDb) return cachedDb;
 
     try {
-        const client = await MongoClient.connect(ATLAS_URI);
+        if (!ATLAS_URI) {
+            throw new Error('MongoDB URI not found');
+        }
+
+        const client = await MongoClient.connect(ATLAS_URI, {
+            maxPoolSize: 10,
+            connectTimeoutMS: 5000,
+            socketTimeoutMS: 5000,
+        });
+
         const db = client.db('locamoo');
 
         cachedClient = client;
@@ -18,6 +27,6 @@ export async function getDb(): Promise<Db> {
         return db;
     } catch (error) {
         console.error('MongoDB connection error:', error);
-        throw error;
+        throw new Error('Failed to connect to database');
     }
 }
