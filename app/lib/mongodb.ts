@@ -12,7 +12,6 @@ export async function getDb(): Promise<Db> {
         maxPoolSize: 10,
         connectTimeoutMS: 10000,
         socketTimeoutMS: 10000,
-        maxTimeMS: 5000
     };
 
     try {
