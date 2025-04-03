@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: locamoo-websocket
+    env: node
+    buildCommand: npm install && npm run build:server
+    startCommand: npm run start:server
+    rootDir: server
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true

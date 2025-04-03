@@ -6,19 +6,48 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:user-status": "ts-node --project tsconfig.json scripts/migrations/updateUserStatus.ts",
+    "server": "ts-node -P server/tsconfig.server.json server/websocket.ts",
+    "start:frontend": "next start",
+    "start:server": "ts-node -P server/tsconfig.server.json server/websocket.ts",
+    "build:frontend": "next build",
+    "build:server": "tsc -P server/tsconfig.server.json"
   },
   "dependencies": {
-    "react": "^19.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@flaticon/flaticon-uicons": "^3.3.1",
+    "@mui/icons-material": "^7.0.1",
+    "@mui/material": "^7.0.1",
+    "@react-three/drei": "^10.0.5",
+    "@react-three/fiber": "^9.1.1",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/mapbox-gl": "^3.4.1",
+    "bcryptjs": "^3.0.2",
+    "canvas-confetti": "^1.9.3",
+    "leaflet": "^1.9.4",
+    "mapbox-gl": "^3.11.0",
+    "mongodb": "^6.15.0",
+    "next": "15.2.4",
+    "next-auth": "^4.24.11",
+    "react": "^19.1.0",
     "react-dom": "^19.0.0",
-    "next": "15.2.4"
+    "react-icons": "^5.5.0",
+    "react-leaflet": "^5.0.0",
+    "three": "^0.175.0",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5",
+    "@types/ws": "^8.5.10"
   }
 }
