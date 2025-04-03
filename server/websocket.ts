@@ -4,13 +4,20 @@ import { MongoClient } from 'mongodb';
 const PORT = process.env.PORT || 3001;
 const wss = new WebSocketServer({ port: Number(PORT) });
 
-// Update MongoDB connection options
+// Update MongoDB connection with proper SSL options
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri!, {
     ssl: true,
     tls: true,
-    tlsAllowInvalidCertificates: true, // Add this for development
+    tlsAllowInvalidCertificates: false,
+    directConnection: true,
     retryWrites: true,
+    minPoolSize: 0,
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 30000,
+    replicaSet: 'atlas-ejl9lb-shard-0',
+    authSource: 'admin',
     w: 'majority',
     serverApi: {
         version: '1',

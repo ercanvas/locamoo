@@ -6,7 +6,7 @@ services:
     startCommand: npm run server
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://yarmaciercanyasin:r4mq6uNgzIPev856@cluster0.1woykrh.mongodb.net/locamoo?retryWrites=true&w=majority&tls=true
+        value: mongodb+srv://yarmaciercanyasin:r4mq6uNgzIPev856@cluster0.1woykrh.mongodb.net/locamoo?retryWrites=true&w=majority&authSource=admin&replicaSet=atlas-ejl9lb-shard-0&tls=true
       - key: NODE_ENV
         value: production
       - key: PORT
