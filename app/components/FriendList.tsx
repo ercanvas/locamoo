@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { MdPersonAdd, MdCheck, MdClose, MdChat } from 'react-icons/md';
 import Image from 'next/image';
+import Link from 'next/link';
 import Chat from './Chat';
 
 interface Friend {
@@ -120,7 +121,7 @@ export default function FriendList({ username }: { username: string }) {
             <div className="space-y-3">
                 {friends.map(friend => (
                     <div key={friend.username} className="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
-                        <div className="flex items-center gap-3">
+                        <Link href={`/player/${friend.username}`} className="flex items-center gap-3 hover:opacity-80">
                             <div className="w-10 h-10 rounded-full overflow-hidden">
                                 <Image src={friend.photoUrl} alt={friend.username} width={40} height={40} />
                             </div>
@@ -128,7 +129,7 @@ export default function FriendList({ username }: { username: string }) {
                                 <div className="text-white">{friend.username}</div>
                                 <div className="text-sm text-gray-400">{friend.status}</div>
                             </div>
-                        </div>
+                        </Link>
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${friend.status === 'online' ? 'bg-green-500' :
                                 friend.status === 'in_game' ? 'bg-blue-500' : 'bg-gray-500'

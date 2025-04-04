@@ -12,9 +12,16 @@ export async function POST(request: Request) {
             );
         }
 
+        if (username === friendUsername) {
+            return NextResponse.json(
+                { success: false, message: 'Cannot add yourself as friend' },
+                { status: 400 }
+            );
+        }
+
         const db = await getDb();
 
-        // Verify both users exist in database
+        // Verify both users exist
         const [user, friendUser] = await Promise.all([
             db.collection('users').findOne({ username }),
             db.collection('users').findOne({ username: friendUsername })
@@ -22,18 +29,27 @@ export async function POST(request: Request) {
 
         if (!user || !friendUser) {
             return NextResponse.json(
-                { success: false, message: 'One or both users not found' },
+                { success: false, message: `User ${!user ? username : friendUsername} not found` },
                 { status: 404 }
             );
         }
 
-        // Check if already friends
-        const existingFriend = await db.collection('friends').findOne({
-            $or: [
-                { user1: username, user2: friendUsername },
-                { user1: friendUsername, user2: username }
-            ]
-        });
+        // Check existing friendship and requests in both directions
+        const [existingFriend, existingRequest] = await Promise.all([
+            db.collection('friends').findOne({
+                $or: [
+                    { user1: username, user2: friendUsername },
+                    { user1: friendUsername, user2: username }
+                ]
+            }),
+            db.collection('friendRequests').findOne({
+                $or: [
+                    { from: username, to: friendUsername },
+                    { from: friendUsername, to: username }
+                ],
+                status: 'pending'
+            })
+        ]);
 
         if (existingFriend) {
             return NextResponse.json(
@@ -42,16 +58,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // Check for existing requests
-        const existingRequest = await db.collection('friendRequests').findOne({
-            from: username,
-            to: friendUsername,
-            status: 'pending'
-        });
-
         if (existingRequest) {
             return NextResponse.json(
-                { success: false, message: 'Friend request already sent' },
+                { success: false, message: 'Friend request already exists' },
                 { status: 400 }
             );
         }

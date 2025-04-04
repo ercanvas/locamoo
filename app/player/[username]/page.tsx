@@ -44,17 +44,21 @@ export default function Profile({ params }: { params: Promise<{ username: string
         const fetchUserData = async () => {
             try {
                 const response = await fetch(`/api/profile/${username}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch profile');
+                }
                 const data = await response.json();
                 if (data.photoUrl) {
                     setPhotoUrl(data.photoUrl);
                 }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
+                router.push('/404'); // Redirect to 404 if profile not found
             }
         };
 
         fetchUserData();
-    }, [username]);
+    }, [username, router]);
 
     useEffect(() => {
         const currentUser = localStorage.getItem('username');
@@ -176,11 +180,17 @@ export default function Profile({ params }: { params: Promise<{ username: string
 
     const handleAddFriend = async () => {
         try {
+            const currentUser = localStorage.getItem('username');
+            if (!currentUser) {
+                router.push('/auth');
+                return;
+            }
+
             const res = await fetch('/api/friends/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: localStorage.getItem('username'),
+                    username: currentUser,
                     friendUsername: username
                 })
             });
@@ -190,8 +200,8 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 throw new Error(data.message);
             }
 
-            // Show success notification
             alert('Friend request sent successfully!');
+            checkFriendStatus(); // Refresh friend status
 
         } catch (error: any) {
             alert(error.message || 'Failed to send friend request');
