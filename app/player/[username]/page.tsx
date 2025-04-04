@@ -59,9 +59,19 @@ export default function Profile({ params }: { params: Promise<{ username: string
     }, [username]);
 
     const checkFriendStatus = async () => {
-        const res = await fetch(`/api/friends/check/${username}`);
-        const data = await res.json();
-        setIsFriend(data.isFriend);
+        try {
+            const currentUser = localStorage.getItem('username');
+            const res = await fetch(`/api/friends/check/${username}`, {
+                headers: {
+                    'x-user': currentUser || ''
+                }
+            });
+            if (!res.ok) throw new Error('Failed to check friend status');
+            const data = await res.json();
+            setIsFriend(data.isFriend);
+        } catch (error) {
+            console.error('Failed to check friend status:', error);
+        }
     };
 
     const handlePhotoClick = () => {
