@@ -23,18 +23,36 @@ export default function FriendList({ username }: { username: string }) {
     }, []);
 
     const fetchFriends = async () => {
-        const res = await fetch(`/api/friends/${username}`);
-        const data = await res.json();
-        if (data.success) {
-            setFriends(data.friends);
+        try {
+            const res = await fetch(`/api/friends/${username}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to fetch friends');
+            }
+
+            if (data.success) {
+                setFriends(data.friends);
+            }
+        } catch (err: any) {
+            setError(err.message);
         }
     };
 
     const fetchRequests = async () => {
-        const res = await fetch(`/api/friends/requests/${username}`);
-        const data = await res.json();
-        if (data.success) {
-            setRequests(data.requests);
+        try {
+            const res = await fetch(`/api/friends/requests/${username}`);
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to fetch requests');
+            }
+
+            if (data.success) {
+                setRequests(data.requests);
+            }
+        } catch (err: any) {
+            setError(err.message);
         }
     };
 

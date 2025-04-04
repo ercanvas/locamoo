@@ -175,17 +175,26 @@ export default function Profile({ params }: { params: Promise<{ username: string
     };
 
     const handleAddFriend = async () => {
-        const res = await fetch('/api/friends/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: localStorage.getItem('username'),
-                friendUsername: username
-            })
-        });
+        try {
+            const res = await fetch('/api/friends/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: localStorage.getItem('username'),
+                    friendUsername: username
+                })
+            });
 
-        if (res.ok) {
-            // Update UI or show notification
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message);
+            }
+
+            // Show success notification
+            alert('Friend request sent successfully!');
+
+        } catch (error: any) {
+            alert(error.message || 'Failed to send friend request');
         }
     };
 

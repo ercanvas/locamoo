@@ -12,17 +12,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // Prevent self-friend requests
-        if (username === friendUsername) {
-            return NextResponse.json(
-                { success: false, message: 'Cannot add yourself as friend' },
-                { status: 400 }
-            );
-        }
-
         const db = await getDb();
 
-        // Verify both users exist
+        // Verify both users exist in database
         const [user, friendUser] = await Promise.all([
             db.collection('users').findOne({ username }),
             db.collection('users').findOne({ username: friendUsername })
@@ -30,12 +22,12 @@ export async function POST(request: Request) {
 
         if (!user || !friendUser) {
             return NextResponse.json(
-                { success: false, message: 'User not found' },
+                { success: false, message: 'One or both users not found' },
                 { status: 404 }
             );
         }
 
-        // Check existing friendship
+        // Check if already friends
         const existingFriend = await db.collection('friends').findOne({
             $or: [
                 { user1: username, user2: friendUsername },
@@ -50,17 +42,16 @@ export async function POST(request: Request) {
             );
         }
 
-        // Check for existing pending requests in both directions
+        // Check for existing requests
         const existingRequest = await db.collection('friendRequests').findOne({
-            $or: [
-                { from: username, to: friendUsername, status: 'pending' },
-                { from: friendUsername, to: username, status: 'pending' }
-            ]
+            from: username,
+            to: friendUsername,
+            status: 'pending'
         });
 
         if (existingRequest) {
             return NextResponse.json(
-                { success: false, message: 'Friend request already exists' },
+                { success: false, message: 'Friend request already sent' },
                 { status: 400 }
             );
         }
