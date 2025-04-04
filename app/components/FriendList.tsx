@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { MdPersonAdd, MdCheck, MdClose, MdChat } from 'react-icons/md';
 import Image from 'next/image';
+import Chat from './Chat';
 
 interface Friend {
     username: string;
@@ -93,10 +94,9 @@ export default function FriendList({ username }: { username: string }) {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${
-                                friend.status === 'online' ? 'bg-green-500' :
+                            <div className={`w-2 h-2 rounded-full ${friend.status === 'online' ? 'bg-green-500' :
                                 friend.status === 'in_game' ? 'bg-blue-500' : 'bg-gray-500'
-                            }`} />
+                                }`} />
                             <button
                                 onClick={() => setActiveChatUser(friend.username)}
                                 className="p-2 bg-green-600 hover:bg-green-700 rounded-lg text-white"
@@ -110,9 +110,9 @@ export default function FriendList({ username }: { username: string }) {
 
             {/* Add chat component */}
             {activeChatUser && (
-                <Chat 
-                    friend={activeChatUser} 
-                    onClose={() => setActiveChatUser(null)} 
+                <Chat
+                    friend={activeChatUser}
+                    onClose={() => setActiveChatUser(null)}
                 />
             )}
         </div>

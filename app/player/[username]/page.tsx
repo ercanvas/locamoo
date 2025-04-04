@@ -411,9 +411,9 @@ export default function Profile({ params }: { params: Promise<{ username: string
 
             {/* Add chat component */}
             {showChat && (
-                <Chat 
-                    friend={username} 
-                    onClose={() => setShowChat(false)} 
+                <Chat
+                    friend={username}
+                    onClose={() => setShowChat(false)}
                 />
             )}
         </div>
