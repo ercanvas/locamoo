@@ -32,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google-adsense-account" content="ca-pub-3259581378559098" />
         <link
           href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css'
           rel='stylesheet'
