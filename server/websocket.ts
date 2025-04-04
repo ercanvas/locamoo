@@ -23,8 +23,10 @@ interface QueuePlayer {
 }
 
 type MessageData = {
-    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE';
+    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE' | 'CHAT_MESSAGE' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPT';
     username: string;
+    message?: string;
+    to?: string;
 };
 
 let matchmakingQueue: QueuePlayer[] = [];
@@ -61,6 +63,46 @@ async function init() {
                             matchmakingQueue = matchmakingQueue.filter(p => p.username !== data.username);
                             onlinePlayers.delete(data.username);
                             broadcastStats();
+                            break;
+
+                        case 'CHAT_MESSAGE':
+                            if (data.to && data.message) {
+                                const targetWs = onlinePlayers.get(data.to);
+                                if (targetWs) {
+                                    targetWs.send(JSON.stringify({
+                                        type: 'CHAT_MESSAGE',
+                                        from: data.username,
+                                        message: data.message,
+                                        timestamp: new Date().toISOString()
+                                    }));
+                                }
+                            }
+                            break;
+
+                        case 'FRIEND_REQUEST':
+                            if (data.to) {
+                                const targetWs = onlinePlayers.get(data.to);
+                                if (targetWs) {
+                                    targetWs.send(JSON.stringify({
+                                        type: 'NOTIFICATION',
+                                        notificationType: 'FRIEND_REQUEST',
+                                        from: data.username
+                                    }));
+                                }
+                            }
+                            break;
+
+                        case 'FRIEND_ACCEPT':
+                            if (data.to) {
+                                const targetWs = onlinePlayers.get(data.to);
+                                if (targetWs) {
+                                    targetWs.send(JSON.stringify({
+                                        type: 'NOTIFICATION',
+                                        notificationType: 'FRIEND_ACCEPTED',
+                                        from: data.username
+                                    }));
+                                }
+                            }
                             break;
                     }
                 } catch (error) {
