@@ -24,6 +24,7 @@ interface UserData {
     photoUrl: string;
     role?: 'moderator' | 'admin';
     canAssignModerator?: boolean;
+    username?: string;
 }
 
 export default function Profile({ params }: { params: Promise<{ username: string }> }) {
@@ -333,7 +334,12 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold text-white">{username}</h1>
-                            {userData.role === 'moderator' && (
+                            {userData.username === 'yasin' ? (
+                                <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-2 py-1 rounded-lg text-sm">
+                                    <MdVerified />
+                                    <span>Admin</span>
+                                </div>
+                            ) : userData.role === 'moderator' && (
                                 <div className="flex items-center gap-1 bg-blue-500/10 text-blue-500 px-2 py-1 rounded-lg text-sm">
                                     <MdVerified />
                                     <span>Moderator</span>

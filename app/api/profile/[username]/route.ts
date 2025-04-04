@@ -12,10 +12,6 @@ export async function GET(
             { projection: { password: 0 } }
         );
 
-        // Get requesting user for role check
-        const requestingUser = request.headers.get('x-user');
-        const isAdmin = requestingUser === 'yasin'; // Hardcode admin check for yasin
-
         if (!user) {
             return NextResponse.json(
                 { message: 'User not found' },
@@ -23,9 +19,13 @@ export async function GET(
             );
         }
 
+        // Add admin role if username is yasin
+        const isAdmin = params.username === 'yasin';
+        const role = isAdmin ? 'admin' : user.role;
+
         return NextResponse.json({
             ...user,
-            isAdmin,
+            role,
             canAssignModerator: isAdmin
         });
 
