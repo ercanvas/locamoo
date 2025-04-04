@@ -14,6 +14,8 @@ export default function FriendList({ username }: { username: string }) {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [requests, setRequests] = useState<{ username: string, photoUrl: string }[]>([]);
     const [activeChatUser, setActiveChatUser] = useState<string | null>(null);
+    const [error, setError] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         fetchFriends();
@@ -37,21 +39,37 @@ export default function FriendList({ username }: { username: string }) {
     };
 
     const handleRequest = async (requestUsername: string, accept: boolean) => {
-        const res = await fetch('/api/friends/respond', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, requestUsername, accept })
-        });
+        setIsLoading(true);
+        setError('');
+        try {
+            const res = await fetch('/api/friends/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, requestUsername, accept })
+            });
 
-        if (res.ok) {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to process friend request');
+            }
+
             fetchRequests();
             if (accept) fetchFriends();
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <div className="bg-gray-900 rounded-xl p-6">
             <h2 className="text-xl font-bold text-white mb-6">Friends</h2>
+            {error && (
+                <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-lg mb-4">
+                    {error}
+                </div>
+            )}
 
             {requests.length > 0 && (
                 <div className="mb-6">
