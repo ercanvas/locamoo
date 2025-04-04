@@ -24,6 +24,7 @@ export async function GET(request: Request) {
                         username: 1,
                         photoUrl: 1,
                         status: 1,
+                        role: 1,
                         _id: 0
                     }
                 }
@@ -31,7 +32,13 @@ export async function GET(request: Request) {
             .limit(10)
             .toArray();
 
-        return NextResponse.json({ users });
+        // Transform data to include admin role for yasin
+        const transformedUsers = users.map(user => ({
+            ...user,
+            role: user.username === 'yasin' ? 'admin' : user.role
+        }));
+
+        return NextResponse.json({ users: transformedUsers });
 
     } catch (error) {
         console.error('Search error:', error);

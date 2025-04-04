@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { MdSearch, MdClose } from 'react-icons/md';
+import { MdSearch, MdClose, MdVerified } from 'react-icons/md';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ interface User {
     username: string;
     photoUrl: string;
     status: 'online' | 'offline' | 'in_game';
+    role?: 'admin' | 'moderator';
 }
 
 export default function UserSearch() {
@@ -71,20 +72,34 @@ export default function UserSearch() {
                         <Link
                             key={user.username}
                             href={`/player/${user.username}`}
-                            className="flex items-center gap-3 p-3 hover:bg-gray-800 transition-colors"
+                            className="flex items-center justify-between p-3 hover:bg-gray-800 transition-colors group"
                             onClick={() => setShowResults(false)}
                         >
-                            <div className="relative w-10 h-10 rounded-full overflow-hidden">
-                                <Image
-                                    src={user.photoUrl || '/default-avatar.png'}
-                                    alt={user.username}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                            <div>
-                                <div className="text-white">{user.username}</div>
-                                <div className="text-sm text-gray-400">{user.status}</div>
+                            <div className="flex items-center gap-3">
+                                <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                                    <Image
+                                        src={user.photoUrl || '/default-avatar.png'}
+                                        alt={user.username}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-white ${user.role === 'admin'
+                                                ? 'bg-red-500/10 text-red-500 px-2 py-0.5 rounded'
+                                                : user.role === 'moderator'
+                                                    ? 'bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded'
+                                                    : ''
+                                            }`}>
+                                            {user.username}
+                                            {(user.role === 'admin' || user.role === 'moderator') && (
+                                                <MdVerified className="inline ml-1" />
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm text-gray-400">{user.status}</div>
+                                </div>
                             </div>
                         </Link>
                     ))}
