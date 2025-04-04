@@ -2,6 +2,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { MongoClient } from 'mongodb';
 
 const PORT = process.env.PORT || 3001;
+const WS_URL = 'wss://locamoo.onrender.com';
 const wss = new WebSocketServer({ port: Number(PORT) });
 
 // Simplified MongoDB connection options

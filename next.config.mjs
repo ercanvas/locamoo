@@ -30,6 +30,9 @@ const nextConfig = {
                 maxPoolSize: 10,
             }
         }
+    },
+    env: {
+        NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'wss://locamoo.onrender.com',
     }
 };
 
