@@ -270,9 +270,9 @@ export default function Profile({ params }: { params: Promise<{ username: string
             const response = await fetch(`/api/profile/${username}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     newUsername,
-                    actorUsername: currentUser 
+                    actorUsername: currentUser
                 })
             });
 
@@ -400,7 +400,8 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     </div>
                 </div>
 
-                {(userData.role === 'admin' || userData.role === 'moderator') && !isOwnProfile && (
+                {/* Add moderator controls section independent of profile picture */}
+                {(userData.role === 'admin' || userData.role === 'moderator') && !isOwnProfile && username !== 'yasin' && (
                     <div className="mt-4 p-4 bg-gray-800 rounded-lg">
                         <h3 className="text-white font-medium mb-3 flex items-center gap-2">
                             {userData.role === 'admin' ? (
