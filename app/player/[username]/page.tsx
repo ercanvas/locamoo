@@ -13,6 +13,7 @@ import FriendList from '@/app/components/FriendList';
 import Chat from '@/app/components/Chat';
 import UserSearch from '@/app/components/UserSearch';
 import Notifications from '@/app/components/Notifications';
+import EnterNewUsername from '@/app/components/EnterNewUsername';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -46,6 +47,7 @@ export default function Profile({ params }: { params: Promise<{ username: string
     const [isFriend, setIsFriend] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [userData, setUserData] = useState<UserData>({ photoUrl: '/default-avatar.png' });
+    const [showChangeUsername, setShowChangeUsername] = useState(false);
 
     useEffect(() => {
         // Fetch user data including photo
@@ -412,10 +414,7 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         </h3>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => {
-                                    const newUsername = prompt('Enter new username:');
-                                    if (newUsername) handleChangeUsername(newUsername);
-                                }}
+                                onClick={() => setShowChangeUsername(true)}
                                 className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
                             >
                                 Change Username
@@ -575,6 +574,17 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 <Chat
                     friend={username}
                     onClose={() => setShowChat(false)}
+                />
+            )}
+
+            {showChangeUsername && (
+                <EnterNewUsername
+                    currentUsername={username}
+                    onConfirm={(newUsername) => {
+                        handleChangeUsername(newUsername);
+                        setShowChangeUsername(false);
+                    }}
+                    onCancel={() => setShowChangeUsername(false)}
                 />
             )}
         </div>
