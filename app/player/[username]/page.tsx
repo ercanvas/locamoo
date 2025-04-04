@@ -2,7 +2,7 @@
 import { useState, use, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat } from 'react-icons/md';
+import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat, MdVerified } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import DeleteAccountConfirmation from '@/app/components/DeleteAccountConfirmation';
 import ChangePassword from '@/app/components/ChangePassword';
@@ -18,6 +18,12 @@ interface SecuritySettings {
     is2faEnabled: boolean;
     lastPasswordChange: string;
     lastPasskeyChange: string;
+}
+
+interface UserData {
+    photoUrl: string;
+    role?: 'moderator' | 'admin';
+    canAssignModerator?: boolean;
 }
 
 export default function Profile({ params }: { params: Promise<{ username: string }> }) {
@@ -38,16 +44,23 @@ export default function Profile({ params }: { params: Promise<{ username: string
     const [isOwnProfile, setIsOwnProfile] = useState(false);
     const [isFriend, setIsFriend] = useState(false);
     const [showChat, setShowChat] = useState(false);
+    const [userData, setUserData] = useState<UserData>({ photoUrl: '/default-avatar.png' });
 
     useEffect(() => {
         // Fetch user data including photo
         const fetchUserData = async () => {
             try {
-                const response = await fetch(`/api/profile/${username}`);
+                const currentUser = localStorage.getItem('username');
+                const response = await fetch(`/api/profile/${username}`, {
+                    headers: {
+                        'x-user': currentUser || ''
+                    }
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch profile');
                 }
                 const data = await response.json();
+                setUserData(data);
                 if (data.photoUrl) {
                     setPhotoUrl(data.photoUrl);
                 }
@@ -208,6 +221,29 @@ export default function Profile({ params }: { params: Promise<{ username: string
         }
     };
 
+    const handleAssignModerator = async () => {
+        try {
+            const response = await fetch('/api/profile/moderator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminUsername: localStorage.getItem('username'),
+                    targetUsername: username
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message);
+            }
+
+            // Refresh user data
+            window.location.reload();
+        } catch (error: any) {
+            alert(error.message || 'Failed to assign moderator role');
+        }
+    };
+
     const currentDate = new Date();
     const memberSince = new Intl.DateTimeFormat('en-US', {
         month: 'long',
@@ -295,8 +331,25 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">{username}</h1>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold text-white">{username}</h1>
+                            {userData.role === 'moderator' && (
+                                <div className="flex items-center gap-1 bg-blue-500/10 text-blue-500 px-2 py-1 rounded-lg text-sm">
+                                    <MdVerified />
+                                    <span>Moderator</span>
+                                </div>
+                            )}
+                        </div>
                         <p className="text-gray-400">Member since {memberSince}</p>
+                        {userData.canAssignModerator && !userData.role && (
+                            <button
+                                onClick={handleAssignModerator}
+                                className="mt-2 flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-sm"
+                            >
+                                <MdVerified />
+                                Assign as Moderator
+                            </button>
+                        )}
                     </div>
                 </div>
 
