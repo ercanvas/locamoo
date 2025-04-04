@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { MdSearch, MdClose, MdVerified } from 'react-icons/md';
+import { MdSearch, MdClose, MdVerified, MdCircle } from 'react-icons/md';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ interface User {
     photoUrl: string;
     status: 'online' | 'offline' | 'in_game';
     role?: 'admin' | 'moderator';
+    isOnline?: boolean;
 }
 
 export default function UserSearch() {
@@ -86,7 +87,7 @@ export default function UserSearch() {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className={`text-white ${user.role === 'admin'
+                                        <span className={`text-white flex items-center gap-2 ${user.role === 'admin'
                                                 ? 'bg-red-500/10 text-red-500 px-2 py-0.5 rounded'
                                                 : user.role === 'moderator'
                                                     ? 'bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded'
@@ -94,9 +95,13 @@ export default function UserSearch() {
                                             }`}>
                                             {user.username}
                                             {(user.role === 'admin' || user.role === 'moderator') && (
-                                                <MdVerified className="inline ml-1" />
+                                                <MdVerified className="inline" />
                                             )}
                                         </span>
+                                        <MdCircle
+                                            className={user.isOnline ? "text-green-500" : "text-gray-500"}
+                                            size={8}
+                                        />
                                     </div>
                                     <div className="text-sm text-gray-400">{user.status}</div>
                                 </div>

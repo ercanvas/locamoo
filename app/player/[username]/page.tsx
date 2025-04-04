@@ -2,7 +2,7 @@
 import { useState, use, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat, MdVerified, MdSupervisorAccount, MdAdminPanelSettings } from 'react-icons/md';
+import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat, MdVerified, MdSupervisorAccount, MdAdminPanelSettings, MdCircle } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import DeleteAccountConfirmation from '@/app/components/DeleteAccountConfirmation';
 import ChangePassword from '@/app/components/ChangePassword';
@@ -26,6 +26,7 @@ interface UserData {
     role?: 'moderator' | 'admin';
     canAssignModerator?: boolean;
     username?: string;
+    isOnline?: boolean;
 }
 
 export default function Profile({ params }: { params: Promise<{ username: string }> }) {
@@ -384,6 +385,16 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold text-white">{username}</h1>
+                            <div className="flex items-center gap-2">
+                                {userData.isOnline ? (
+                                    <MdCircle className="text-green-500" size={12} />
+                                ) : (
+                                    <MdCircle className="text-gray-500" size={12} />
+                                )}
+                                <span className="text-sm text-gray-400">
+                                    {userData.isOnline ? 'Online' : 'Offline'}
+                                </span>
+                            </div>
                             {userData.username === 'yasin' ? (
                                 <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-2 py-1 rounded-lg text-sm">
                                     <MdVerified />

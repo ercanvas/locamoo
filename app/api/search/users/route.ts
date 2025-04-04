@@ -25,6 +25,7 @@ export async function GET(request: Request) {
                         photoUrl: 1,
                         status: 1,
                         role: 1,
+                        lastStatusUpdate: 1,
                         _id: 0
                     }
                 }
@@ -32,10 +33,12 @@ export async function GET(request: Request) {
             .limit(10)
             .toArray();
 
-        // Transform data to include admin role for yasin
+        // Transform data to include admin role and online status
         const transformedUsers = users.map(user => ({
             ...user,
-            role: user.username === 'yasin' ? 'admin' : user.role
+            role: user.username === 'yasin' ? 'admin' : user.role,
+            isOnline: user.lastStatusUpdate &&
+                (new Date().getTime() - new Date(user.lastStatusUpdate).getTime()) < 5 * 60 * 1000
         }));
 
         return NextResponse.json({ users: transformedUsers });

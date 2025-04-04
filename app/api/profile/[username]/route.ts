@@ -20,6 +20,10 @@ export async function GET(
             );
         }
 
+        // Check if user is online (last status update within 5 minutes)
+        const isOnline = user.lastStatusUpdate &&
+            (new Date().getTime() - new Date(user.lastStatusUpdate).getTime()) < 5 * 60 * 1000;
+
         // Add admin role if username is yasin
         const isAdmin = params.username === 'yasin';
         const role = isAdmin ? 'admin' : user.role;
@@ -27,7 +31,8 @@ export async function GET(
         return NextResponse.json({
             ...user,
             role,
-            canAssignModerator: isAdmin
+            canAssignModerator: isAdmin,
+            isOnline
         });
 
     } catch (error) {
