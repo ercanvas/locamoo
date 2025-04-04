@@ -2,13 +2,14 @@
 import { useState, use, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack } from 'react-icons/md';
+import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import DeleteAccountConfirmation from '@/app/components/DeleteAccountConfirmation';
 import ChangePassword from '@/app/components/ChangePassword';
 import ChangePasskey from '@/app/components/ChangePasskey';
 import ChangeEmail from '@/app/components/ChangeEmail';
 import ThemeToggle from '@/app/components/ThemeToggle';
+import FriendList from '@/app/components/FriendList';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -31,6 +32,8 @@ export default function Profile({ params }: { params: Promise<{ username: string
     const [showChangePasskey, setShowChangePasskey] = useState(false);
     const [showChangeEmail, setShowChangeEmail] = useState(false);
     const [isDark, setIsDark] = useState(true);
+    const [isOwnProfile, setIsOwnProfile] = useState(false);
+    const [isFriend, setIsFriend] = useState(false);
 
     useEffect(() => {
         // Fetch user data including photo
@@ -48,6 +51,18 @@ export default function Profile({ params }: { params: Promise<{ username: string
 
         fetchUserData();
     }, [username]);
+
+    useEffect(() => {
+        const currentUser = localStorage.getItem('username');
+        setIsOwnProfile(currentUser === username);
+        checkFriendStatus();
+    }, [username]);
+
+    const checkFriendStatus = async () => {
+        const res = await fetch(`/api/friends/check/${username}`);
+        const data = await res.json();
+        setIsFriend(data.isFriend);
+    };
 
     const handlePhotoClick = () => {
         fileInputRef.current?.click();
@@ -145,6 +160,21 @@ export default function Profile({ params }: { params: Promise<{ username: string
         router.back();
     };
 
+    const handleAddFriend = async () => {
+        const res = await fetch('/api/friends/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: localStorage.getItem('username'),
+                friendUsername: username
+            })
+        });
+
+        if (res.ok) {
+            // Update UI or show notification
+        }
+    };
+
     const currentDate = new Date();
     const memberSince = new Intl.DateTimeFormat('en-US', {
         month: 'long',
@@ -172,6 +202,17 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     </Link>
                     <ThemeToggle />
                 </div>
+
+                {/* Add friend button if not own profile */}
+                {!isOwnProfile && !isFriend && (
+                    <button
+                        onClick={handleAddFriend}
+                        className="mb-6 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                    >
+                        <MdPersonAdd className="text-xl" />
+                        Add Friend
+                    </button>
+                )}
 
                 {/* Profile Header */}
                 <div className="bg-gray-900 rounded-xl p-6 mb-8 flex items-center gap-6">
@@ -274,6 +315,13 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         </button>
                     </div>
                 </div>
+
+                {/* Show friend list only on own profile */}
+                {isOwnProfile && (
+                    <div className="mt-6">
+                        <FriendList username={username} />
+                    </div>
+                )}
 
                 {/* Account Actions */}
                 <div className="bg-gray-900 rounded-xl p-6">
