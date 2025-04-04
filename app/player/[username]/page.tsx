@@ -14,6 +14,7 @@ import Chat from '@/app/components/Chat';
 import UserSearch from '@/app/components/UserSearch';
 import Notifications from '@/app/components/Notifications';
 import EnterNewUsername from '@/app/components/EnterNewUsername';
+import UserList from '@/app/components/UserList';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -525,6 +526,13 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 {isOwnProfile && (
                     <div className="mt-6">
                         <FriendList username={username} />
+                    </div>
+                )}
+
+                {/* Add UserList for admins and moderators */}
+                {(userData.role === 'admin' || userData.role === 'moderator') && (
+                    <div className="mt-6">
+                        <UserList />
                     </div>
                 )}
 
