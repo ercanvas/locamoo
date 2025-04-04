@@ -12,23 +12,30 @@ export async function POST(request: Request) {
             );
         }
 
-        const db = await getDb();
-
-        // Check if request already exists
-        const existingRequest = await db.collection('friendRequests').findOne({
-            from: username,
-            to: friendUsername,
-            status: 'pending'
-        });
-
-        if (existingRequest) {
+        // Prevent self-friend requests
+        if (username === friendUsername) {
             return NextResponse.json(
-                { success: false, message: 'Friend request already sent' },
+                { success: false, message: 'Cannot add yourself as friend' },
                 { status: 400 }
             );
         }
 
-        // Check if they're already friends
+        const db = await getDb();
+
+        // Verify both users exist
+        const [user, friendUser] = await Promise.all([
+            db.collection('users').findOne({ username }),
+            db.collection('users').findOne({ username: friendUsername })
+        ]);
+
+        if (!user || !friendUser) {
+            return NextResponse.json(
+                { success: false, message: 'User not found' },
+                { status: 404 }
+            );
+        }
+
+        // Check existing friendship
         const existingFriend = await db.collection('friends').findOne({
             $or: [
                 { user1: username, user2: friendUsername },
@@ -43,6 +50,21 @@ export async function POST(request: Request) {
             );
         }
 
+        // Check for existing pending requests in both directions
+        const existingRequest = await db.collection('friendRequests').findOne({
+            $or: [
+                { from: username, to: friendUsername, status: 'pending' },
+                { from: friendUsername, to: username, status: 'pending' }
+            ]
+        });
+
+        if (existingRequest) {
+            return NextResponse.json(
+                { success: false, message: 'Friend request already exists' },
+                { status: 400 }
+            );
+        }
+
         // Create friend request
         await db.collection('friendRequests').insertOne({
             from: username,
@@ -50,9 +72,6 @@ export async function POST(request: Request) {
             status: 'pending',
             createdAt: new Date()
         });
-
-        // Send notification through WebSocket if needed
-        // WebSocket notification will be handled by the WebSocket server
 
         return NextResponse.json({
             success: true,
