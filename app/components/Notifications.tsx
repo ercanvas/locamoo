@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { MdNotifications } from 'react-icons/md';
+import { MdNotifications, MdCheck, MdClose } from 'react-icons/md';
 
 interface Notification {
     type: 'FRIEND_REQUEST' | 'FRIEND_ACCEPTED';
@@ -30,6 +30,29 @@ export default function Notifications() {
         return () => ws.close();
     }, []);
 
+    const handleFriendRequest = async (from: string, accept: boolean) => {
+        try {
+            const res = await fetch('/api/friends/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: localStorage.getItem('username'),
+                    requestUsername: from,
+                    accept
+                })
+            });
+
+            if (res.ok) {
+                // Remove the notification
+                setNotifications(prev =>
+                    prev.filter(n => !(n.type === 'FRIEND_REQUEST' && n.from === from))
+                );
+            }
+        } catch (error) {
+            console.error('Failed to respond to friend request:', error);
+        }
+    };
+
     return (
         <div className="relative">
             <button
@@ -45,17 +68,34 @@ export default function Notifications() {
             </button>
 
             {showDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg p-4 space-y-4">
+                <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg p-4 space-y-4 z-50">
                     {notifications.length === 0 ? (
                         <p className="text-gray-400 text-center">No notifications</p>
                     ) : (
                         notifications.map((notif, i) => (
                             <div key={i} className="border-b border-gray-800 pb-4">
                                 <p className="text-white">
-                                    {notif.type === 'FRIEND_REQUEST'
-                                        ? `${notif.from} sent you a friend request`
-                                        : `${notif.from} accepted your friend request`
-                                    }
+                                    {notif.type === 'FRIEND_REQUEST' ? (
+                                        <div className="flex items-center justify-between">
+                                            <span>{notif.from} sent you a friend request</span>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleFriendRequest(notif.from, true)}
+                                                    className="p-1.5 bg-green-600 rounded-lg hover:bg-green-700"
+                                                >
+                                                    <MdCheck className="text-white" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleFriendRequest(notif.from, false)}
+                                                    className="p-1.5 bg-red-600 rounded-lg hover:bg-red-700"
+                                                >
+                                                    <MdClose className="text-white" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        `${notif.from} accepted your friend request`
+                                    )}
                                 </p>
                                 <span className="text-xs text-gray-400">
                                     {new Date(notif.timestamp).toLocaleString()}

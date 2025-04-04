@@ -12,6 +12,7 @@ import ThemeToggle from '@/app/components/ThemeToggle';
 import FriendList from '@/app/components/FriendList';
 import Chat from '@/app/components/Chat';
 import UserSearch from '@/app/components/UserSearch';
+import Notifications from '@/app/components/Notifications';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -216,7 +217,10 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         </Link>
                         <UserSearch />
                     </div>
-                    <ThemeToggle />
+                    <div className="flex items-center gap-4">
+                        <ThemeToggle />
+                        <Notifications />
+                    </div>
                 </div>
 
                 {/* Add friend/chat buttons if not own profile */}

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Inter } from 'next/font/google';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import "./globals.css";
+import { NotificationsProvider } from './components/NotificationsProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} bg-black text-white min-h-screen`}>
-        {children}
+        <NotificationsProvider>
+          {children}
+        </NotificationsProvider>
       </body>
     </html>
   );
