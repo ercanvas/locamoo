@@ -6,6 +6,7 @@ import { MdHistory, MdPerson, MdWorkspacePremium } from 'react-icons/md';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import UserSearch from './UserSearch';
 
 type Props = {
     gameMode?: 'car' | 'plane' | 'weather';
@@ -129,11 +130,11 @@ export default function GameInterface({
     };
 
     return (
-        <div className="absolute inset-0 pointer-events-none">
-            <div className="container mx-auto p-4">
-                <div className="flex justify-between items-start">
-                    {/* Add Logo */}
-                    <Link href="/" className="pointer-events-auto">
+        <div className="fixed inset-0 pointer-events-none">
+            {/* Navigation Bar */}
+            <div className="bg-black/50 backdrop-blur-sm p-4 pointer-events-auto">
+                <div className="container mx-auto flex justify-between items-center">
+                    <Link href="/">
                         <Image
                             src="/logo.png"
                             alt="Locamoo"
@@ -143,44 +144,13 @@ export default function GameInterface({
                         />
                     </Link>
 
-                    {/* Profile Pictures Section */}
-                    <div className="flex gap-8">
-                        {/* Your Profile */}
-                        <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full border-2 border-green-500 overflow-hidden mb-2">
-                                <img
-                                    src="/your-avatar.png"
-                                    alt="Your Avatar"
-                                    className="w-full h-full object-cover bg-gray-800"
-                                />
-                            </div>
-                            <div className="bg-gray-900 px-3 py-1 rounded text-xs font-bold text-green-500 border border-green-500/20">
-                                LEVEL 1
-                            </div>
-                        </div>
-
-                        {/* VS Text */}
-                        <div className="flex items-center">
-                            <span className="text-2xl font-bold text-white/80">VS</span>
-                        </div>
-
-                        {/* Opponent Profile */}
-                        <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full border-2 border-red-500 overflow-hidden mb-2">
-                                <img
-                                    src="/opponent-avatar.png"
-                                    alt="Opponent Avatar"
-                                    className="w-full h-full object-cover bg-gray-800"
-                                />
-                            </div>
-                            <div className="bg-gray-900 px-3 py-1 rounded text-xs font-bold text-red-500 border border-red-500/20">
-                                LEVEL 2
-                            </div>
-                        </div>
+                    {/* Add search component */}
+                    <div className="flex-1 flex justify-center">
+                        <UserSearch />
                     </div>
 
-                    {/* Rest of navbar */}
-                    <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-white flex items-center gap-4">
+                    {/* Rest of navigation */}
+                    <div className="flex items-center gap-4">
                         <button
                             onClick={onQuit}
                             className="pointer-events-auto flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm font-medium"

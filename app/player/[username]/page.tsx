@@ -11,6 +11,7 @@ import ChangeEmail from '@/app/components/ChangeEmail';
 import ThemeToggle from '@/app/components/ThemeToggle';
 import FriendList from '@/app/components/FriendList';
 import Chat from '@/app/components/Chat';
+import UserSearch from '@/app/components/UserSearch';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -203,15 +204,18 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     >
                         <MdOutlineArrowBack className="text-2xl text-white" />
                     </button>
-                    <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-                        <Image
-                            src={isDark ? "/logo.png" : "/dark_logo.png"}
-                            alt="Locamoo"
-                            width={120}
-                            height={40}
-                            priority
-                        />
-                    </Link>
+                    <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
+                        <Link href="/">
+                            <Image
+                                src={isDark ? "/logo.png" : "/dark_logo.png"}
+                                alt="Locamoo"
+                                width={120}
+                                height={40}
+                                priority
+                            />
+                        </Link>
+                        <UserSearch />
+                    </div>
                     <ThemeToggle />
                 </div>
 
