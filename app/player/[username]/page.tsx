@@ -2,7 +2,7 @@
 import { useState, use, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd } from 'react-icons/md';
+import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import DeleteAccountConfirmation from '@/app/components/DeleteAccountConfirmation';
 import ChangePassword from '@/app/components/ChangePassword';
@@ -10,6 +10,7 @@ import ChangePasskey from '@/app/components/ChangePasskey';
 import ChangeEmail from '@/app/components/ChangeEmail';
 import ThemeToggle from '@/app/components/ThemeToggle';
 import FriendList from '@/app/components/FriendList';
+import Chat from '@/app/components/Chat';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -34,6 +35,7 @@ export default function Profile({ params }: { params: Promise<{ username: string
     const [isDark, setIsDark] = useState(true);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
     const [isFriend, setIsFriend] = useState(false);
+    const [showChat, setShowChat] = useState(false);
 
     useEffect(() => {
         // Fetch user data including photo
@@ -213,15 +215,28 @@ export default function Profile({ params }: { params: Promise<{ username: string
                     <ThemeToggle />
                 </div>
 
-                {/* Add friend button if not own profile */}
-                {!isOwnProfile && !isFriend && (
-                    <button
-                        onClick={handleAddFriend}
-                        className="mb-6 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-                    >
-                        <MdPersonAdd className="text-xl" />
-                        Add Friend
-                    </button>
+                {/* Add friend/chat buttons if not own profile */}
+                {!isOwnProfile && (
+                    <div className="mb-6 flex items-center gap-2">
+                        {!isFriend && (
+                            <button
+                                onClick={handleAddFriend}
+                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                            >
+                                <MdPersonAdd className="text-xl" />
+                                Add Friend
+                            </button>
+                        )}
+                        {isFriend && (
+                            <button
+                                onClick={() => setShowChat(true)}
+                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                            >
+                                <MdChat className="text-xl" />
+                                Chat
+                            </button>
+                        )}
+                    </div>
                 )}
 
                 {/* Profile Header */}
@@ -391,6 +406,14 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 <ChangeEmail
                     onClose={() => setShowChangeEmail(false)}
                     onConfirm={handleEmailChange}
+                />
+            )}
+
+            {/* Add chat component */}
+            {showChat && (
+                <Chat 
+                    friend={username} 
+                    onClose={() => setShowChat(false)} 
                 />
             )}
         </div>
