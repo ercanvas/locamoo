@@ -78,9 +78,14 @@ export default function Profile({ params }: { params: Promise<{ username: string
 
     useEffect(() => {
         const currentUser = localStorage.getItem('username');
+        // Restrict access to non-logged in users
+        if (!currentUser) {
+            router.replace('/auth');
+            return;
+        }
         setIsOwnProfile(currentUser === username);
         checkFriendStatus();
-    }, [username]);
+    }, [username, router]);
 
     const checkFriendStatus = async () => {
         try {
@@ -350,8 +355,8 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 <div className="bg-gray-900 rounded-xl p-6 mb-8 flex items-center gap-6">
                     <div className="relative w-24 h-24">
                         <div
-                            className="w-full h-full rounded-full overflow-hidden cursor-pointer"
-                            onClick={handlePhotoClick}
+                            className={`w-full h-full rounded-full overflow-hidden ${isOwnProfile ? 'cursor-pointer' : ''}`}
+                            onClick={isOwnProfile ? handlePhotoClick : undefined}
                         >
                             <Image
                                 src={photoUrl}
@@ -360,12 +365,14 @@ export default function Profile({ params }: { params: Promise<{ username: string
                                 style={{ objectFit: 'cover' }}
                             />
                         </div>
-                        <button
-                            className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full hover:bg-blue-600"
-                            onClick={handlePhotoClick}
-                        >
-                            <MdEdit className="text-white" />
-                        </button>
+                        {isOwnProfile && (
+                            <button
+                                className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full hover:bg-blue-600"
+                                onClick={handlePhotoClick}
+                            >
+                                <MdEdit className="text-white" />
+                            </button>
+                        )}
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -434,72 +441,74 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 )}
 
                 {/* Security Settings */}
-                <div className="bg-gray-900 rounded-xl p-6 mb-6">
-                    <h2 className="text-xl font-bold text-white mb-6">Security Settings</h2>
+                {isOwnProfile && (
+                    <div className="bg-gray-900 rounded-xl p-6 mb-6">
+                        <h2 className="text-xl font-bold text-white mb-6">Security Settings</h2>
 
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-                            <div className="flex items-center gap-4">
-                                <MdSecurity className="text-2xl text-blue-500" />
-                                <div>
-                                    <h3 className="text-white font-medium">Two-Factor Authentication</h3>
-                                    <p className="text-sm text-gray-400">Add an extra layer of security</p>
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
+                                <div className="flex items-center gap-4">
+                                    <MdSecurity className="text-2xl text-blue-500" />
+                                    <div>
+                                        <h3 className="text-white font-medium">Two-Factor Authentication</h3>
+                                        <p className="text-sm text-gray-400">Add an extra layer of security</p>
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={handleChange2FA}
+                                    className={`px-4 py-2 rounded-lg ${securitySettings.is2faEnabled
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-gray-700 text-gray-300'
+                                        }`}
+                                >
+                                    {securitySettings.is2faEnabled ? 'Enabled' : 'Disabled'}
+                                </button>
                             </div>
+
                             <button
-                                onClick={handleChange2FA}
-                                className={`px-4 py-2 rounded-lg ${securitySettings.is2faEnabled
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-gray-700 text-gray-300'
-                                    }`}
+                                onClick={handleChangePassword}
+                                className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
                             >
-                                {securitySettings.is2faEnabled ? 'Enabled' : 'Disabled'}
+                                <div className="flex items-center gap-4">
+                                    <MdKey className="text-2xl text-blue-500" />
+                                    <div>
+                                        <h3 className="text-white font-medium">Change Password</h3>
+                                        <p className="text-sm text-gray-400">Last changed: {securitySettings.lastPasswordChange}</p>
+                                    </div>
+                                </div>
+                                <MdEdit className="text-gray-400" />
+                            </button>
+
+                            <button
+                                onClick={handleChangePasskey}
+                                className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <MdKey className="text-2xl text-blue-500" />
+                                    <div>
+                                        <h3 className="text-white font-medium">Change Passkey</h3>
+                                        <p className="text-sm text-gray-400">Last changed: {securitySettings.lastPasskeyChange}</p>
+                                    </div>
+                                </div>
+                                <MdEdit className="text-gray-400" />
+                            </button>
+
+                            <button
+                                onClick={handleChangeEmail}
+                                className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <MdEmail className="text-2xl text-blue-500" />
+                                    <div>
+                                        <h3 className="text-white font-medium">Change Email</h3>
+                                        <p className="text-sm text-gray-400">Current: user@example.com</p>
+                                    </div>
+                                </div>
+                                <MdEdit className="text-gray-400" />
                             </button>
                         </div>
-
-                        <button
-                            onClick={handleChangePassword}
-                            className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
-                        >
-                            <div className="flex items-center gap-4">
-                                <MdKey className="text-2xl text-blue-500" />
-                                <div>
-                                    <h3 className="text-white font-medium">Change Password</h3>
-                                    <p className="text-sm text-gray-400">Last changed: {securitySettings.lastPasswordChange}</p>
-                                </div>
-                            </div>
-                            <MdEdit className="text-gray-400" />
-                        </button>
-
-                        <button
-                            onClick={handleChangePasskey}
-                            className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
-                        >
-                            <div className="flex items-center gap-4">
-                                <MdKey className="text-2xl text-blue-500" />
-                                <div>
-                                    <h3 className="text-white font-medium">Change Passkey</h3>
-                                    <p className="text-sm text-gray-400">Last changed: {securitySettings.lastPasskeyChange}</p>
-                                </div>
-                            </div>
-                            <MdEdit className="text-gray-400" />
-                        </button>
-
-                        <button
-                            onClick={handleChangeEmail}
-                            className="w-full flex items-center justify-between p-4 bg-gray-800 rounded-lg"
-                        >
-                            <div className="flex items-center gap-4">
-                                <MdEmail className="text-2xl text-blue-500" />
-                                <div>
-                                    <h3 className="text-white font-medium">Change Email</h3>
-                                    <p className="text-sm text-gray-400">Current: user@example.com</p>
-                                </div>
-                            </div>
-                            <MdEdit className="text-gray-400" />
-                        </button>
                     </div>
-                </div>
+                )}
 
                 {/* Show friend list only on own profile */}
                 {isOwnProfile && (
@@ -509,64 +518,70 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 )}
 
                 {/* Account Actions */}
-                <div className="bg-gray-900 rounded-xl p-6">
-                    <h2 className="text-xl font-bold text-white mb-6">Account Actions</h2>
-                    <div className="space-y-4">
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
-                        >
-                            <div className="flex items-center gap-4">
-                                <MdLogout className="text-2xl text-yellow-500" />
-                                <div>
-                                    <h3 className="font-medium">Logout</h3>
-                                    <p className="text-sm text-gray-400">Sign out from your account</p>
+                {isOwnProfile && (
+                    <div className="bg-gray-900 rounded-xl p-6">
+                        <h2 className="text-xl font-bold text-white mb-6">Account Actions</h2>
+                        <div className="space-y-4">
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <MdLogout className="text-2xl text-yellow-500" />
+                                    <div>
+                                        <h3 className="font-medium">Logout</h3>
+                                        <p className="text-sm text-gray-400">Sign out from your account</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </button>
+                            </button>
 
-                        <button
-                            onClick={() => setShowDeleteConfirmation(true)}
-                            className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-red-900/50 rounded-lg text-white"
-                        >
-                            <div className="flex items-center gap-4">
-                                <MdDeleteForever className="text-2xl text-red-500" />
-                                <div>
-                                    <h3 className="font-medium text-red-500">Delete Account</h3>
-                                    <p className="text-sm text-gray-400">Permanently delete your account and all data</p>
+                            <button
+                                onClick={() => setShowDeleteConfirmation(true)}
+                                className="w-full flex items-center justify-between p-4 bg-gray-800 hover:bg-red-900/50 rounded-lg text-white"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <MdDeleteForever className="text-2xl text-red-500" />
+                                    <div>
+                                        <h3 className="font-medium text-red-500">Delete Account</h3>
+                                        <p className="text-sm text-gray-400">Permanently delete your account and all data</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </button>
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
-            {showDeleteConfirmation && (
-                <DeleteAccountConfirmation
-                    onConfirm={handleDeleteAccount}
-                    onCancel={() => setShowDeleteConfirmation(false)}
-                />
-            )}
+            {isOwnProfile && (
+                <>
+                    {showDeleteConfirmation && (
+                        <DeleteAccountConfirmation
+                            onConfirm={handleDeleteAccount}
+                            onCancel={() => setShowDeleteConfirmation(false)}
+                        />
+                    )}
 
-            {showChangePassword && (
-                <ChangePassword
-                    onClose={() => setShowChangePassword(false)}
-                    onConfirm={handlePasswordChange}
-                />
-            )}
+                    {showChangePassword && (
+                        <ChangePassword
+                            onClose={() => setShowChangePassword(false)}
+                            onConfirm={handlePasswordChange}
+                        />
+                    )}
 
-            {showChangePasskey && (
-                <ChangePasskey
-                    onClose={() => setShowChangePasskey(false)}
-                    onConfirm={handlePasskeyChange}
-                />
-            )}
+                    {showChangePasskey && (
+                        <ChangePasskey
+                            onClose={() => setShowChangePasskey(false)}
+                            onConfirm={handlePasskeyChange}
+                        />
+                    )}
 
-            {showChangeEmail && (
-                <ChangeEmail
-                    onClose={() => setShowChangeEmail(false)}
-                    onConfirm={handleEmailChange}
-                />
+                    {showChangeEmail && (
+                        <ChangeEmail
+                            onClose={() => setShowChangeEmail(false)}
+                            onConfirm={handleEmailChange}
+                        />
+                    )}
+                </>
             )}
 
             {/* Add chat component */}
