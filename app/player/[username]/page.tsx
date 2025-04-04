@@ -2,7 +2,7 @@
 import { useState, use, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat, MdVerified } from 'react-icons/md';
+import { MdEdit, MdSecurity, MdEmail, MdKey, MdLogout, MdDeleteForever, MdOutlineArrowBack, MdPersonAdd, MdChat, MdVerified, MdSupervisorAccount, MdAdminPanelSettings } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import DeleteAccountConfirmation from '@/app/components/DeleteAccountConfirmation';
 import ChangePassword from '@/app/components/ChangePassword';
@@ -245,6 +245,47 @@ export default function Profile({ params }: { params: Promise<{ username: string
         }
     };
 
+    const handleDeleteUser = async () => {
+        try {
+            const currentUser = localStorage.getItem('username');
+            const response = await fetch(`/api/profile/${username}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ actorUsername: currentUser })
+            });
+
+            if (!response.ok) {
+                throw new Error((await response.json()).message);
+            }
+
+            router.push('/');
+        } catch (error: any) {
+            alert(error.message || 'Failed to delete user');
+        }
+    };
+
+    const handleChangeUsername = async (newUsername: string) => {
+        try {
+            const currentUser = localStorage.getItem('username');
+            const response = await fetch(`/api/profile/${username}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    newUsername,
+                    actorUsername: currentUser 
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error((await response.json()).message);
+            }
+
+            window.location.reload();
+        } catch (error: any) {
+            alert(error.message || 'Failed to change username');
+        }
+    };
+
     const currentDate = new Date();
     const memberSince = new Intl.DateTimeFormat('en-US', {
         month: 'long',
@@ -358,6 +399,39 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         )}
                     </div>
                 </div>
+
+                {(userData.role === 'admin' || userData.role === 'moderator') && !isOwnProfile && (
+                    <div className="mt-4 p-4 bg-gray-800 rounded-lg">
+                        <h3 className="text-white font-medium mb-3 flex items-center gap-2">
+                            {userData.role === 'admin' ? (
+                                <><MdAdminPanelSettings className="text-red-500" /> Admin Controls</>
+                            ) : (
+                                <><MdSupervisorAccount className="text-blue-500" /> Moderator Controls</>
+                            )}
+                        </h3>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    const newUsername = prompt('Enter new username:');
+                                    if (newUsername) handleChangeUsername(newUsername);
+                                }}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                            >
+                                Change Username
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this user?')) {
+                                        handleDeleteUser();
+                                    }
+                                }}
+                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
+                            >
+                                Delete User
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Security Settings */}
                 <div className="bg-gray-900 rounded-xl p-6 mb-6">
