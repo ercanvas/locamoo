@@ -19,24 +19,37 @@ export default function GlobalChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [showVoiceChat, setShowVoiceChat] = useState(false);
     const [wsReady, setWsReady] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const ws = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Fetch recent messages on component mount
-        const fetchRecentMessages = async () => {
+        const fetchData = async () => {
             try {
                 const res = await fetch('/api/chat/global');
                 const data = await res.json();
                 if (data.messages) {
-                    setMessages(data.messages);
+                    const messagesWithUserData = await Promise.all(
+                        data.messages.map(async (msg: ChatMessage) => {
+                            const userRes = await fetch(`/api/profile/${msg.username}`);
+                            const userData = await userRes.json();
+                            return {
+                                ...msg,
+                                photoUrl: userData.photoUrl || '/default-avatar.png',
+                                isOnline: userData.isOnline
+                            };
+                        })
+                    );
+                    setMessages(messagesWithUserData);
                 }
             } catch (error) {
-                console.error('Failed to fetch recent messages:', error);
+                console.error('Failed to fetch messages:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchRecentMessages();
+        fetchData();
 
         // Connect to WebSocket
         const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
@@ -95,6 +108,16 @@ export default function GlobalChat() {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, isOpen]);
+
+    if (isLoading) {
+        return (
+            <button
+                className="fixed bottom-4 right-4 bg-blue-600 p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors animate-pulse"
+            >
+                <MdChat className="text-white text-2xl" />
+            </button>
+        );
+    }
 
     return (
         <>
