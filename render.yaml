@@ -16,3 +16,15 @@ services:
       - key: NODE_TLS_REJECT_UNAUTHORIZED
         value: "0"
     autoDeploy: true
+
+  - type: web
+    name: locamoo-turn
+    env: docker
+    dockerfilePath: ./docker/turn.Dockerfile
+    envVars:
+      - key: TURN_SERVER_URL
+        value: turn:your-server-ip:3478
+      - key: TURN_SERVER_USERNAME
+        value: locamoo
+      - key: TURN_SERVER_PASSWORD
+        value: your_password_here

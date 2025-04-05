@@ -35,6 +35,7 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
     const [isMuted, setIsMuted] = useState(true);
     const [showCreateRoom, setShowCreateRoom] = useState(false);
     const [newRoomName, setNewRoomName] = useState('');
+    const [wsReady, setWsReady] = useState(false);
     const mediaStream = useRef<MediaStream | null>(null);
     const audioContext = useRef<AudioContext | null>(null);
     const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
@@ -47,9 +48,25 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
         const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
         ws.current = new WebSocket(WS_URL!);
 
+        ws.current.onopen = () => {
+            setWsReady(true);
+            console.log('WebSocket connected');
+        };
+
+        ws.current.onclose = () => {
+            setWsReady(false);
+            console.log('WebSocket disconnected');
+        };
+
+        ws.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
         return () => {
             cleanupVoiceChat();
-            ws.current?.close();
+            if (ws.current) {
+                ws.current.close();
+            }
         };
     }, []);
 
@@ -88,17 +105,26 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
         }
     };
 
+    const sendMessage = (message: any) => {
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify(message));
+        } else {
+            console.warn('WebSocket not ready, message not sent:', message);
+        }
+    };
+
     const joinRoom = async (roomId: string) => {
         try {
             await initializeAudio();
             setActiveRoom(roomId);
 
-            // Join room via WebSocket
-            ws.current?.send(JSON.stringify({
-                type: 'VOICE_JOIN',
-                roomId,
-                username: localStorage.getItem('username')
-            }));
+            if (wsReady) {
+                sendMessage({
+                    type: 'VOICE_JOIN',
+                    roomId,
+                    username: localStorage.getItem('username')
+                });
+            }
 
             // Handle WebSocket messages
             if (ws.current) {
@@ -110,11 +136,13 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
                                 const pc = await setupPeerConnection(data.username);
                                 const offer = await pc.createOffer();
                                 await pc.setLocalDescription(offer);
-                                ws.current?.send(JSON.stringify({
-                                    type: 'VOICE_OFFER',
-                                    to: data.username,
-                                    offer
-                                }));
+                                if (wsReady) {
+                                    sendMessage({
+                                        type: 'VOICE_OFFER',
+                                        to: data.username,
+                                        offer
+                                    });
+                                }
                             }
                             break;
 
@@ -187,12 +215,12 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
 
         // Handle ICE candidates
         pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                ws.current?.send(JSON.stringify({
+            if (event.candidate && wsReady) {
+                sendMessage({
                     type: 'VOICE_ICE',
                     to: username,
                     candidate: event.candidate
-                }));
+                });
             }
         };
 
@@ -205,11 +233,13 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        ws.current?.send(JSON.stringify({
-            type: 'VOICE_ANSWER',
-            to: from,
-            answer
-        }));
+        if (wsReady) {
+            sendMessage({
+                type: 'VOICE_ANSWER',
+                to: from,
+                answer
+            });
+        }
     };
 
     const handleIncomingAnswer = async (from: string, answer: RTCSessionDescriptionInit) => {
@@ -227,11 +257,13 @@ export default function VoiceChat({ onClose }: { onClose: () => void }) {
     };
 
     const leaveRoom = (roomId: string) => {
-        ws.current?.send(JSON.stringify({
-            type: 'VOICE_LEAVE',
-            roomId,
-            username: localStorage.getItem('username')
-        }));
+        if (wsReady) {
+            sendMessage({
+                type: 'VOICE_LEAVE',
+                roomId,
+                username: localStorage.getItem('username')
+            });
+        }
         cleanupVoiceChat();
         setActiveRoom(null);
     };

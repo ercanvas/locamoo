@@ -3,12 +3,14 @@ export const TURN_CONFIG = {
         {
             urls: 'stun:stun.l.google.com:19302'
         },
+        // Use Twilio's TURN service
         {
-            // You can use a service like Twilio's TURN servers
-            // or set up your own TURN server using coturn
-            urls: process.env.TURN_SERVER_URL || 'turn:your-turn-server.com:3478',
-            username: process.env.TURN_SERVER_USERNAME || 'username',
-            credential: process.env.TURN_SERVER_PASSWORD || 'password'
+            urls: [
+                'turn:global.turn.twilio.com:3478?transport=udp',
+                'turn:global.turn.twilio.com:3478?transport=tcp'
+            ],
+            username: 'your_twilio_username',
+            credential: 'your_twilio_credential'
         }
     ]
 };

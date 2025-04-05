@@ -18,6 +18,7 @@ export default function GlobalChat() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [showVoiceChat, setShowVoiceChat] = useState(false);
+    const [wsReady, setWsReady] = useState(false);
     const ws = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +42,20 @@ export default function GlobalChat() {
         const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
         ws.current = new WebSocket(WS_URL!);
 
+        ws.current.onopen = () => {
+            setWsReady(true);
+            console.log('WebSocket connected');
+        };
+
+        ws.current.onclose = () => {
+            setWsReady(false);
+            console.log('WebSocket disconnected');
+        };
+
+        ws.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === 'GLOBAL_CHAT') {
@@ -61,15 +76,18 @@ export default function GlobalChat() {
     }, []);
 
     const sendMessage = () => {
-        if (!message.trim() || !ws.current) return;
+        if (!message.trim() || !wsReady) return;
 
-        ws.current.send(JSON.stringify({
-            type: 'GLOBAL_CHAT',
-            username: localStorage.getItem('username'),
-            message: message.trim()
-        }));
-
-        setMessage('');
+        if (ws.current?.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({
+                type: 'GLOBAL_CHAT',
+                username: localStorage.getItem('username'),
+                message: message.trim()
+            }));
+            setMessage('');
+        } else {
+            console.warn('WebSocket not ready, message not sent');
+        }
     };
 
     useEffect(() => {

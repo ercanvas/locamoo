@@ -124,17 +124,43 @@ async function init() {
                         }
 
                         case 'CHAT_MESSAGE': {
-                            if (data.to && data.message) {
-                                const targetWs = onlinePlayers.get(data.to);
-                                if (targetWs) {
-                                    targetWs.send(JSON.stringify({
-                                        type: 'CHAT_MESSAGE',
-                                        from: data.username,
-                                        message: data.message,
-                                        timestamp: new Date().toISOString()
-                                    }));
-                                }
+                            if (!data.to || !data.message) return;
+
+                            const user = await db.collection('users').findOne(
+                                { username: data.username },
+                                { projection: { photoUrl: 1 } }
+                            );
+
+                            if (!user) {
+                                console.error('User not found:', data.username);
+                                return;
                             }
+
+                            const messageData = {
+                                from: data.username,
+                                to: data.to,
+                                message: data.message,
+                                timestamp: new Date(),
+                                read: false
+                            };
+
+                            // Save to database
+                            await db.collection('privateMessages').insertOne(messageData);
+
+                            // Send to recipient
+                            const targetWs = onlinePlayers.get(data.to);
+                            if (targetWs) {
+                                targetWs.send(JSON.stringify({
+                                    type: 'CHAT_MESSAGE',
+                                    ...messageData
+                                }));
+                            }
+
+                            // Send back to sender for confirmation
+                            ws.send(JSON.stringify({
+                                type: 'CHAT_MESSAGE',
+                                ...messageData
+                            }));
                             break;
                         }
 

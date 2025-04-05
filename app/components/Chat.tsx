@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import { MdSend, MdClose } from 'react-icons/md';
+import useSound from 'use-sound';
 
 interface Message {
     from: string;
@@ -13,6 +14,9 @@ export default function Chat({ friend, onClose }: { friend: string; onClose: () 
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
     const ws = useRef<WebSocket | null>(null);
+    const [playMessageSound] = useSound('/sounds/message.mp3');
+    const currentUser = useRef(localStorage.getItem('username'));
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
@@ -20,38 +24,69 @@ export default function Chat({ friend, onClose }: { friend: string; onClose: () 
 
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.type === 'CHAT_MESSAGE' && data.from === friend) {
+            if (data.type === 'CHAT_MESSAGE' &&
+                (data.from === friend || data.from === currentUser.current)) {
                 setMessages(prev => [...prev, data]);
+
+                // Play sound for incoming messages only
+                if (data.from === friend) {
+                    playMessageSound();
+                    showNotification(data.from, data.message);
+                }
             }
         };
+
+        // Fetch chat history
+        fetchChatHistory();
 
         return () => {
             ws.current?.close();
         };
-    }, [friend]);
+    }, [friend, playMessageSound]);
+
+    useEffect(() => {
+        // Auto scroll to bottom on new messages
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const fetchChatHistory = async () => {
+        try {
+            const res = await fetch(`/api/chat/history/${friend}`);
+            const data = await res.json();
+            if (data.messages) {
+                setMessages(data.messages);
+            }
+        } catch (error) {
+            console.error('Failed to fetch chat history:', error);
+        }
+    };
+
+    const showNotification = (from: string, message: string) => {
+        if (Notification.permission === 'granted') {
+            new Notification('New Message', {
+                body: `${from}: ${message}`,
+                icon: '/logo.png'
+            });
+        } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission();
+        }
+    };
 
     const sendMessage = () => {
         if (!newMessage.trim() || !ws.current) return;
 
         const message = {
             type: 'CHAT_MESSAGE',
-            username: localStorage.getItem('username'),
+            username: currentUser.current,
             to: friend,
             message: newMessage
         };
 
         ws.current.send(JSON.stringify(message));
-        setMessages(prev => [...prev, {
-            from: message.username!,
-            message: newMessage,
-            timestamp: new Date().toISOString()
-        }]);
         setNewMessage('');
     };
-
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
     return (
         <div className="fixed bottom-4 right-4 w-80 bg-gray-900 rounded-lg shadow-lg">
@@ -62,20 +97,17 @@ export default function Chat({ friend, onClose }: { friend: string; onClose: () 
                 </button>
             </div>
 
-            <div className="h-96 overflow-y-auto p-4 space-y-4">
+            <div ref={chatContainerRef} className="h-96 overflow-y-auto p-4 space-y-4">
                 {messages.map((msg, i) => (
-                    <div key={i} className={`flex flex-col ${msg.from === friend ? 'items-start' : 'items-end'
-                        }`}>
-                        <div className={`p-3 rounded-lg max-w-[80%] ${msg.from === friend ? 'bg-gray-800' : 'bg-blue-600'
-                            }`}>
-                            <p className="text-white">{msg.message}</p>
+                    <div key={i} className={`flex flex-col ${msg.from === friend ? 'items-start' : 'items-end'}`}>
+                        <div className={`p-3 rounded-lg max-w-[80%] ${msg.from === friend ? 'bg-gray-800' : 'bg-blue-600'}`}>
+                            <p className="text-white break-words">{msg.message}</p>
                             <span className="text-xs text-gray-400">
                                 {new Date(msg.timestamp).toLocaleTimeString()}
                             </span>
                         </div>
                     </div>
                 ))}
-                <div ref={messagesEndRef} />
             </div>
 
             <div className="p-4 border-t border-gray-800 flex gap-2">

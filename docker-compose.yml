@@ -1,0 +1,16 @@
+version: '3'
+services:
+  turn:
+    image: coturn/coturn
+    network_mode: "host" # Required for TURN server
+    volumes:
+      - ./config/turnserver.conf:/etc/coturn/turnserver.conf
+    ports:
+      - "3478:3478"
+      - "3478:3478/udp"
+      - "49152-65535:49152-65535/udp"
+    environment:
+      - TURN_SERVER_NAME=locamoo-turn
+      - TURN_USERNAME=locamoo
+      - TURN_PASSWORD=your_password_here
+    restart: always
