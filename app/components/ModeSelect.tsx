@@ -8,6 +8,7 @@ import DonatePopup from './DonatePopup';
 import DonateReminder from './DonateReminder';
 import Image from 'next/image';
 import GlobalChat from '@/app/components/GlobalChat';
+import Logo from './Logo';
 
 type GameMode = 'car' | 'plane' | 'weather';
 
@@ -73,18 +74,9 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
 
     return (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-40 flex flex-col">
-            {/* Update header layout */}
             <div className="container mx-auto p-4">
                 <div className="flex justify-between items-center mb-8">
-                    <Link href="/" className="transition-transform hover:-translate-y-1 duration-200">
-                        <Image
-                            src="/logo.png"
-                            alt="Locamoo"
-                            width={120}
-                            height={40}
-                        />
-                    </Link>
-
+                    <Logo />
                     <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 text-white flex items-center gap-4">
                         <Link
                             href={`/player/${username}/previous`}
