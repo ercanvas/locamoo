@@ -21,6 +21,7 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
     const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
     const [showDonate, setShowDonate] = useState(false);
     const [showReminder, setShowReminder] = useState(false);
+    const [userRole, setUserRole] = useState<'admin' | 'moderator' | null>(null);
     const router = useRouter();
     const modes = [
         { id: 'car' as GameMode, icon: MdDirectionsCar, label: 'Driving Time' },
@@ -35,6 +36,20 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
         }, 1000);
         return () => clearTimeout(timer);
     }, []);
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            try {
+                const res = await fetch(`/api/profile/${username}`);
+                const data = await res.json();
+                setUserRole(data.role);
+            } catch (error) {
+                console.error('Failed to fetch user role:', error);
+            }
+        };
+
+        fetchUserRole();
+    }, [username]);
 
     const handleModeClick = (mode: GameMode) => {
         setSelectedMode(mode);
@@ -98,6 +113,11 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
                 </div>
             </div>
 
+            {/* Add GlobalChat before game modes */}
+            <div className="absolute top-24 right-4">
+                <GlobalChat />
+            </div>
+
             {/* Game Mode Selection */}
             <div className="flex-1 flex items-center justify-center">
                 <div className="bg-gray-900 p-8 rounded-lg max-w-2xl w-full mx-4">
@@ -125,10 +145,8 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
                 </div>
             </div>
 
-            {/* Add GlobalChat */}
-            <GlobalChat />
-
-            {showDonate && (
+            {/* Update donate popup and reminder logic */}
+            {showDonate && !userRole && (
                 <DonatePopup
                     onClose={handleDonateClose}
                     message="Support our project to help us keep developing new features and maintaining the service! 🙏"
@@ -138,6 +156,7 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
                 <DonateReminder
                     onTimeEnd={handleReminderEnd}
                     timeInSeconds={180}
+                    isAdminOrMod={!!userRole}
                 />
             )}
             {showFindOpponent && (

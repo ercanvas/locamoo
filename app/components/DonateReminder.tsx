@@ -5,10 +5,12 @@ interface DonateReminderProps {
     onTimeEnd: () => void;
     timeInSeconds?: number;
     hasDonated?: boolean;
+    isAdminOrMod?: boolean;
 }
 
-export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDonated = false }: DonateReminderProps) {
+export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDonated = false, isAdminOrMod = false }: DonateReminderProps) {
     const [countdown, setCountdown] = useState(hasDonated ? 7200 : timeInSeconds); // 2 hours if donated
+    const [isPaused, setIsPaused] = useState(false);
     const timeEndCalled = useRef(false);
 
     // Format time as HH:MM:SS
@@ -20,6 +22,8 @@ export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDona
     };
 
     useEffect(() => {
+        if (isPaused) return;
+
         const timer = setInterval(() => {
             setCountdown(prev => {
                 if (prev <= 1 && !timeEndCalled.current) {
@@ -36,7 +40,7 @@ export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDona
             clearInterval(timer);
             timeEndCalled.current = false;
         };
-    }, [onTimeEnd]);
+    }, [onTimeEnd, isPaused]);
 
     return (
         <div className="fixed bottom-4 right-4 bg-black/90 p-4 rounded-lg text-white flex items-center gap-4">
@@ -45,8 +49,16 @@ export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDona
             ) : (
                 <>
                     <span>❤️ Consider supporting us!</span>
-                    <span className="font-mono">{countdown}s</span>
+                    <span className="font-mono">{formatTime(countdown)}</span>
                 </>
+            )}
+            {isAdminOrMod && (
+                <button
+                    onClick={() => setIsPaused(!isPaused)}
+                    className={`ml-2 px-3 py-1 rounded ${isPaused ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                >
+                    {isPaused ? 'Resume' : 'Freeze'}
+                </button>
             )}
         </div>
     );
