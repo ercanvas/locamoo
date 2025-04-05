@@ -7,7 +7,35 @@ export async function POST(request: Request) {
         const { email, password, username } = await request.json();
         console.log('Signup attempt:', { email, username });
 
+        // Username validation
+        if (!username || username.length < 3) {
+            return NextResponse.json(
+                { success: false, message: 'Username must be at least 3 characters long' },
+                { status: 400 }
+            );
+        }
+
+        // Sanitize username - only allow alphanumeric and underscore
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return NextResponse.json(
+                { success: false, message: 'Username can only contain letters, numbers, and underscores' },
+                { status: 400 }
+            );
+        }
+
         const db = await getDb();
+
+        // Check for similar usernames (case insensitive)
+        const similarUsers = await db.collection('users').find({
+            username: { $regex: new RegExp(`^${username}$`, 'i') }
+        }).toArray();
+
+        if (similarUsers.length > 0) {
+            return NextResponse.json(
+                { success: false, message: 'Username already taken' },
+                { status: 400 }
+            );
+        }
 
         // Create first user for testing
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -40,7 +68,7 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error('Signup error:', error);
         return NextResponse.json(
-            { message: 'Failed to create user' },
+            { success: false, message: 'Failed to create account' },
             { status: 500 }
         );
     }
