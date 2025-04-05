@@ -18,7 +18,12 @@ export default function HiddenWords() {
 
     const fetchHiddenWords = async () => {
         try {
-            const res = await fetch('/api/settings/hidden-words');
+            const username = localStorage.getItem('username');
+            const res = await fetch('/api/settings/hidden-words', {
+                headers: {
+                    'x-user': username || ''
+                }
+            });
             const data = await res.json();
             setWords(data.words);
         } catch (error) {
@@ -30,9 +35,13 @@ export default function HiddenWords() {
         if (!newWord.trim()) return;
 
         try {
+            const username = localStorage.getItem('username');
             const res = await fetch('/api/settings/hidden-words', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user': username || ''
+                },
                 body: JSON.stringify({ word: newWord.trim() })
             });
 
@@ -47,9 +56,13 @@ export default function HiddenWords() {
 
     const deleteWord = async (word: string) => {
         try {
+            const username = localStorage.getItem('username');
             const res = await fetch('/api/settings/hidden-words', {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user': username || ''
+                },
                 body: JSON.stringify({ word })
             });
 

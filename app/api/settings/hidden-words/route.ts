@@ -2,9 +2,27 @@ import { NextResponse } from 'next/server';
 import { getDb } from '@/app/lib/mongodb';
 import { isAdmin, isModerator } from '@/app/lib/auth-helpers';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const username = request.headers.get('x-user');
+
+        if (!username) {
+            return NextResponse.json(
+                { message: 'Unauthorized' },
+                { status: 401 }
+            );
+        }
+
         const db = await getDb();
+        const canView = await isModerator(username, db);
+
+        if (!canView) {
+            return NextResponse.json(
+                { message: 'Unauthorized' },
+                { status: 403 }
+            );
+        }
+
         const words = await db.collection('hiddenWords')
             .find({})
             .sort({ addedAt: -1 })
