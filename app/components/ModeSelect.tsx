@@ -113,8 +113,8 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
                 </div>
             </div>
 
-            {/* Add GlobalChat before game modes */}
-            <div className="absolute top-24 right-4">
+            {/* Move GlobalChat above DonateReminder */}
+            <div className="fixed bottom-24 right-4"> {/* Changed from top-24 to bottom-24 */}
                 <GlobalChat />
             </div>
 
@@ -146,16 +146,18 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
             </div>
 
             {/* Update donate popup and reminder logic */}
-            {showDonate && !userRole && (
+            {showDonate && (
                 <DonatePopup
                     onClose={handleDonateClose}
                     message="Support our project to help us keep developing new features and maintaining the service! 🙏"
+                    isAdminOrMod={!!userRole}
                 />
             )}
             {showReminder && (
                 <DonateReminder
                     onTimeEnd={handleReminderEnd}
                     timeInSeconds={180}
+                    hasDonated={false}
                     isAdminOrMod={!!userRole}
                 />
             )}

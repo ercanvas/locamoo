@@ -2,13 +2,15 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { MdClose } from 'react-icons/md';
 
 interface DonatePopupProps {
     onClose: () => void;
     message?: string;
+    isAdminOrMod?: boolean;
 }
 
-export default function DonatePopup({ onClose, message = "Support our project!" }: DonatePopupProps) {
+export default function DonatePopup({ onClose, message = "Support our project!", isAdminOrMod = false }: DonatePopupProps) {
     const [countdown, setCountdown] = useState(15);
     const timeEndCalled = useRef(false);
     const circumference = 2 * Math.PI * 20;
@@ -52,6 +54,16 @@ export default function DonatePopup({ onClose, message = "Support our project!" 
             {/* Main Content */}
             <div className="flex-1 flex items-center justify-center p-8">
                 <div className="bg-black p-12 rounded-2xl max-w-2xl w-full relative border border-gray-800">
+                    {/* Add admin/mod close button */}
+                    {isAdminOrMod && (
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                        >
+                            <MdClose size={24} />
+                        </button>
+                    )}
+
                     {/* Add Logo */}
                     <div className="absolute -top-16 left-1/2 -translate-x-1/2">
                         <Link href="/">

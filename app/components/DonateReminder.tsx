@@ -50,15 +50,16 @@ export default function DonateReminder({ onTimeEnd, timeInSeconds = 180, hasDona
                 <>
                     <span>❤️ Consider supporting us!</span>
                     <span className="font-mono">{formatTime(countdown)}</span>
+                    {isAdminOrMod && (
+                        <button
+                            onClick={() => setIsPaused(!isPaused)}
+                            className={`ml-2 px-3 py-1 rounded ${isPaused ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                                }`}
+                        >
+                            {isPaused ? 'Resume' : 'Freeze'}
+                        </button>
+                    )}
                 </>
-            )}
-            {isAdminOrMod && (
-                <button
-                    onClick={() => setIsPaused(!isPaused)}
-                    className={`ml-2 px-3 py-1 rounded ${isPaused ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                >
-                    {isPaused ? 'Resume' : 'Freeze'}
-                </button>
             )}
         </div>
     );
