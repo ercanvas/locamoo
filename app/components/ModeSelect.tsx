@@ -7,6 +7,7 @@ import FindOpponent from './FindOpponent';
 import DonatePopup from './DonatePopup';
 import DonateReminder from './DonateReminder';
 import Image from 'next/image';
+import GlobalChat from '@/app/components/GlobalChat';
 
 type GameMode = 'car' | 'plane' | 'weather';
 
@@ -123,6 +124,9 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Add GlobalChat */}
+            <GlobalChat />
 
             {showDonate && (
                 <DonatePopup

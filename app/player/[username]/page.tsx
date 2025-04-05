@@ -15,6 +15,8 @@ import UserSearch from '@/app/components/UserSearch';
 import Notifications from '@/app/components/Notifications';
 import EnterNewUsername from '@/app/components/EnterNewUsername';
 import UserList from '@/app/components/UserList';
+import GlobalChat from '@/app/components/GlobalChat';
+import HiddenWords from '@/app/components/HiddenWords';
 
 interface SecuritySettings {
     is2faEnabled: boolean;
@@ -535,6 +537,16 @@ export default function Profile({ params }: { params: Promise<{ username: string
                 {(userData.role === 'admin' || userData.role === 'moderator') && (
                     <div className="mt-6">
                         <UserList />
+                    </div>
+                )}
+
+                {/* Add GlobalChat for all users */}
+                <GlobalChat />
+
+                {/* Add HiddenWords component for admins and moderators */}
+                {(userData.role === 'admin' || userData.role === 'moderator') && (
+                    <div className="mt-6">
+                        <HiddenWords />
                     </div>
                 )}
 

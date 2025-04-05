@@ -23,7 +23,7 @@ interface QueuePlayer {
 }
 
 type MessageData = {
-    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE' | 'CHAT_MESSAGE' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPT';
+    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE' | 'CHAT_MESSAGE' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPT' | 'GLOBAL_CHAT';
     username: string;
     message?: string;
     to?: string;
@@ -31,6 +31,32 @@ type MessageData = {
 
 let matchmakingQueue: QueuePlayer[] = [];
 let onlinePlayers = new Map<string, WebSocket>();
+let hiddenWords: string[] = [];
+
+async function updateHiddenWords() {
+    try {
+        const db = client.db('locamoo');
+        const words = await db.collection('hiddenWords')
+            .find({})
+            .toArray();
+        hiddenWords = words.map(w => w.word.toLowerCase());
+    } catch (error) {
+        console.error('Failed to update hidden words:', error);
+    }
+}
+
+// Call this periodically or when words are updated
+setInterval(updateHiddenWords, 60000);
+updateHiddenWords();
+
+function filterMessage(message: string): string {
+    let filtered = message.toLowerCase();
+    hiddenWords.forEach(word => {
+        const regex = new RegExp(word, 'gi');
+        filtered = filtered.replace(regex, '***');
+    });
+    return filtered;
+}
 
 async function init() {
     try {
@@ -104,6 +130,36 @@ async function init() {
                                 }
                             }
                             break;
+
+                        case 'GLOBAL_CHAT': {
+                            const user = await db.collection('users').findOne(
+                                { username: data.username },
+                                { projection: { photoUrl: 1, role: 1 } }
+                            );
+
+                            if (!user) break;
+
+                            const filteredMessage = filterMessage(data.message);
+                            
+                            const chatMessage = {
+                                type: 'GLOBAL_CHAT',
+                                message: {
+                                    username: data.username,
+                                    message: filteredMessage,
+                                    timestamp: new Date().toISOString(),
+                                    photoUrl: user.photoUrl,
+                                    role: user.role
+                                }
+                            };
+
+                            // Broadcast to all connected clients
+                            wss.clients.forEach(client => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify(chatMessage));
+                                }
+                            });
+                            break;
+                        }
                     }
                 } catch (error) {
                     console.error('Error processing message:', error);
