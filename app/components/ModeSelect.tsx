@@ -106,7 +106,7 @@ export default function ModeSelect({ onSelect, username }: ModeSelectProps) {
             </div>
 
             {/* Move GlobalChat above DonateReminder */}
-            <div className="fixed bottom-24 right-4"> {/* Changed from top-24 to bottom-24 */}
+            <div className="fixed -top-[100px] right-4"> {/* Changed from bottom-24 to -top-[100px] */}
                 <GlobalChat />
             </div>
 
