@@ -23,15 +23,22 @@ interface QueuePlayer {
 }
 
 type MessageData = {
-    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE' | 'CHAT_MESSAGE' | 'FRIEND_REQUEST' | 'FRIEND_ACCEPT' | 'GLOBAL_CHAT';
+    type: 'JOIN_QUEUE' | 'LEAVE_QUEUE' | 'CHAT_MESSAGE' | 'FRIEND_REQUEST' |
+    'FRIEND_ACCEPT' | 'GLOBAL_CHAT' | 'VOICE_JOIN' | 'VOICE_LEAVE' |
+    'VOICE_OFFER' | 'VOICE_ANSWER' | 'VOICE_ICE';
     username: string;
     message?: string;
     to?: string;
+    roomId?: string;
+    offer?: any;
+    answer?: any;
+    candidate?: any;
 };
 
 let matchmakingQueue: QueuePlayer[] = [];
 let onlinePlayers = new Map<string, WebSocket>();
 let hiddenWords: string[] = [];
+let voiceRooms = new Map<string, Set<string>>();
 
 async function updateHiddenWords() {
     try {
@@ -200,6 +207,67 @@ async function init() {
                             });
                             break;
                         }
+
+                        case 'VOICE_JOIN': {
+                            if (!data.roomId) return;
+
+                            if (!voiceRooms.has(data.roomId)) {
+                                voiceRooms.set(data.roomId, new Set());
+                            }
+                            voiceRooms.get(data.roomId)?.add(data.username);
+
+                            // Notify others in room
+                            broadcastToRoom(data.roomId, {
+                                type: 'VOICE_USER_JOINED',
+                                username: data.username
+                            });
+                            break;
+                        }
+
+                        case 'VOICE_LEAVE': {
+                            if (!data.roomId) return;
+                            handleVoiceLeave(data.roomId, data.username);
+                            break;
+                        }
+
+                        case 'VOICE_OFFER': {
+                            if (!data.to || !data.offer) return;
+                            const targetWs = onlinePlayers.get(data.to);
+                            if (targetWs) {
+                                targetWs.send(JSON.stringify({
+                                    type: 'VOICE_OFFER',
+                                    from: data.username,
+                                    offer: data.offer
+                                }));
+                            }
+                            break;
+                        }
+
+                        case 'VOICE_ANSWER': {
+                            if (!data.to || !data.answer) return;
+                            const targetWs = onlinePlayers.get(data.to);
+                            if (targetWs) {
+                                targetWs.send(JSON.stringify({
+                                    type: 'VOICE_ANSWER',
+                                    from: data.username,
+                                    answer: data.answer
+                                }));
+                            }
+                            break;
+                        }
+
+                        case 'VOICE_ICE': {
+                            if (!data.to || !data.candidate) return;
+                            const targetWs = onlinePlayers.get(data.to);
+                            if (targetWs) {
+                                targetWs.send(JSON.stringify({
+                                    type: 'VOICE_ICE',
+                                    from: data.username,
+                                    candidate: data.candidate
+                                }));
+                            }
+                            break;
+                        }
                     }
                 } catch (error) {
                     console.error('Error processing message:', error);
@@ -216,6 +284,16 @@ async function init() {
                     }
                 }
                 broadcastStats();
+
+                // Clean up voice rooms
+                for (const [roomId, participants] of voiceRooms.entries()) {
+                    for (const [username, socket] of onlinePlayers.entries()) {
+                        if (socket === ws && participants.has(username)) {
+                            handleVoiceLeave(roomId, username);
+                            break;
+                        }
+                    }
+                }
             });
 
             // Send initial stats
@@ -280,6 +358,33 @@ async function findMatch() {
             level: player1Data?.level || 1
         }
     }));
+}
+
+function handleVoiceLeave(roomId: string, username: string) {
+    const room = voiceRooms.get(roomId);
+    if (room) {
+        room.delete(username);
+        if (room.size === 0) {
+            voiceRooms.delete(roomId);
+        } else {
+            broadcastToRoom(roomId, {
+                type: 'VOICE_USER_LEFT',
+                username
+            });
+        }
+    }
+}
+
+function broadcastToRoom(roomId: string, message: any) {
+    const room = voiceRooms.get(roomId);
+    if (!room) return;
+
+    room.forEach(username => {
+        const ws = onlinePlayers.get(username);
+        if (ws?.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(message));
+        }
+    });
 }
 
 init().catch(console.error);

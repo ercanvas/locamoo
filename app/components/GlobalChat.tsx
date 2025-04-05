@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { MdSend, MdClose, MdChat, MdVerified } from 'react-icons/md';
+import { MdSend, MdClose, MdChat, MdVerified, MdVoiceChat } from 'react-icons/md';
 import Image from 'next/image';
 import Link from 'next/link';
+import VoiceChat from './VoiceChat';
 
 interface ChatMessage {
     username: string;
@@ -16,6 +17,7 @@ export default function GlobalChat() {
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [showVoiceChat, setShowVoiceChat] = useState(false);
     const ws = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -90,9 +92,17 @@ export default function GlobalChat() {
                     <div className="bg-gray-900 w-full max-w-2xl rounded-lg shadow-xl">
                         <div className="flex justify-between items-center p-4 border-b border-gray-800">
                             <h3 className="text-white font-medium text-lg">Global Chat</h3>
-                            <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">
-                                <MdClose size={24} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowVoiceChat(true)}
+                                    className="bg-green-600 hover:bg-green-700 p-2 rounded-lg text-white"
+                                >
+                                    <MdVoiceChat size={20} />
+                                </button>
+                                <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">
+                                    <MdClose size={24} />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="h-[60vh] overflow-y-auto p-4 space-y-4">
@@ -151,6 +161,10 @@ export default function GlobalChat() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showVoiceChat && (
+                <VoiceChat onClose={() => setShowVoiceChat(false)} />
             )}
         </>
     );
