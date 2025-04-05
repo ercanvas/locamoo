@@ -367,6 +367,9 @@ export default function Profile({ params }: { params: Promise<{ username: string
                                 style={{ objectFit: 'cover' }}
                             />
                         </div>
+                        {/* Add status indicator dot */}
+                        <div className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-gray-900 ${userData.isOnline ? 'bg-green-500' : 'bg-gray-500'
+                            }`} />
                         {isOwnProfile && (
                             <button
                                 className="absolute bottom-0 right-0 bg-blue-500 p-2 rounded-full hover:bg-blue-600"
@@ -387,12 +390,11 @@ export default function Profile({ params }: { params: Promise<{ username: string
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold text-white">{username}</h1>
                             <div className="flex items-center gap-2">
-                                {userData.isOnline ? (
-                                    <MdCircle className="text-green-500" size={12} />
-                                ) : (
-                                    <MdCircle className="text-gray-500" size={12} />
-                                )}
-                                <span className="text-sm text-gray-400">
+                                <MdCircle
+                                    className={userData.isOnline ? "text-green-500" : "text-gray-500"}
+                                    size={12}
+                                />
+                                <span className={`text-sm ${userData.isOnline ? "text-green-500" : "text-gray-500"}`}>
                                     {userData.isOnline ? 'Online' : 'Offline'}
                                 </span>
                             </div>

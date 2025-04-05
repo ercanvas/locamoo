@@ -56,7 +56,8 @@ export default function UserList() {
                     <Link
                         key={user.username}
                         href={`/player/${user.username}`}
-                        className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                        className={`flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors ${user.isOnline ? 'border-l-4 border-green-500' : 'border-l-4 border-gray-500'
+                            }`}
                     >
                         <div className="flex items-center gap-3">
                             <div className="relative w-10 h-10 rounded-full overflow-hidden">
@@ -66,14 +67,16 @@ export default function UserList() {
                                     fill
                                     className="object-cover"
                                 />
+                                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-gray-800 ${user.isOnline ? 'bg-green-500' : 'bg-gray-500'
+                                    }`} />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-white flex items-center gap-2 ${user.role === 'admin'
-                                            ? 'bg-red-500/10 text-red-500 px-2 py-0.5 rounded'
-                                            : user.role === 'moderator'
-                                                ? 'bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded'
-                                                : ''
+                                        ? 'bg-red-500/10 text-red-500 px-2 py-0.5 rounded'
+                                        : user.role === 'moderator'
+                                            ? 'bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded'
+                                            : ''
                                         }`}>
                                         {user.username}
                                         {(user.role === 'admin' || user.role === 'moderator') && (
