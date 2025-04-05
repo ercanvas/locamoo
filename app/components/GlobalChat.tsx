@@ -20,13 +20,36 @@ export default function GlobalChat() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // Fetch recent messages on component mount
+        const fetchRecentMessages = async () => {
+            try {
+                const res = await fetch('/api/chat/global');
+                const data = await res.json();
+                if (data.messages) {
+                    setMessages(data.messages);
+                }
+            } catch (error) {
+                console.error('Failed to fetch recent messages:', error);
+            }
+        };
+
+        fetchRecentMessages();
+
+        // Connect to WebSocket
         const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
         ws.current = new WebSocket(WS_URL!);
 
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === 'GLOBAL_CHAT') {
-                setMessages(prev => [...prev, data.message]);
+                setMessages(prev => {
+                    // Keep only messages from last 20 minutes
+                    const twentyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
+                    const filteredMessages = prev.filter(msg =>
+                        new Date(msg.timestamp) >= twentyMinutesAgo
+                    );
+                    return [...filteredMessages, data.message];
+                });
             }
         };
 
@@ -90,10 +113,10 @@ export default function GlobalChat() {
                                             <Link
                                                 href={`/player/${msg.username}`}
                                                 className={`font-medium ${msg.role === 'admin'
-                                                        ? 'text-red-500'
-                                                        : msg.role === 'moderator'
-                                                            ? 'text-blue-500'
-                                                            : 'text-white'
+                                                    ? 'text-red-500'
+                                                    : msg.role === 'moderator'
+                                                        ? 'text-blue-500'
+                                                        : 'text-white'
                                                     }`}
                                             >
                                                 {msg.username}

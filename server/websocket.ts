@@ -58,6 +58,23 @@ function filterMessage(message: string): string {
     return filtered;
 }
 
+// Add cleanup interval (20 minutes in milliseconds)
+const MESSAGE_RETENTION_TIME = 20 * 60 * 1000;
+
+// Add this function after existing functions
+async function cleanupOldMessages() {
+    try {
+        const db = client.db('locamoo');
+        const twentyMinutesAgo = new Date(Date.now() - MESSAGE_RETENTION_TIME);
+
+        await db.collection('globalChat').deleteMany({
+            timestamp: { $lt: twentyMinutesAgo }
+        });
+    } catch (error) {
+        console.error('Failed to cleanup old messages:', error);
+    }
+}
+
 async function init() {
     try {
         console.log('Connecting to MongoDB...');
@@ -156,17 +173,23 @@ async function init() {
                                 return;
                             }
 
+                            const timestamp = new Date();
                             const filteredMessage = filterMessage(data.message);
+
+                            const messageData = {
+                                username: data.username,
+                                message: filteredMessage,
+                                timestamp,
+                                photoUrl: user.photoUrl,
+                                role: user.role
+                            };
+
+                            // Save message to database
+                            await db.collection('globalChat').insertOne(messageData);
 
                             const chatMessage = {
                                 type: 'GLOBAL_CHAT',
-                                message: {
-                                    username: data.username,
-                                    message: filteredMessage,
-                                    timestamp: new Date().toISOString(),
-                                    photoUrl: user.photoUrl,
-                                    role: user.role
-                                }
+                                message: messageData
                             };
 
                             // Broadcast to all connected clients
@@ -209,6 +232,9 @@ async function init() {
         }
     }
 }
+
+// Add cleanup interval after other intervals
+setInterval(cleanupOldMessages, 60000); // Run every minute
 
 function broadcastStats() {
     const stats = {
