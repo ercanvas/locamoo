@@ -73,25 +73,33 @@ async function init() {
 
             ws.addListener('message', async (messageData) => {
                 try {
-                    const data: MessageData = JSON.parse(messageData.toString());
+                    const data = JSON.parse(messageData.toString()) as MessageData;
                     console.log('Received message:', data);
 
+                    // Early return if username is missing
+                    if (!data.username) {
+                        console.error('Missing username in message');
+                        return;
+                    }
+
                     switch (data.type) {
-                        case 'JOIN_QUEUE':
+                        case 'JOIN_QUEUE': {
                             const player: QueuePlayer = { ws, username: data.username };
                             matchmakingQueue.push(player);
                             onlinePlayers.set(data.username, ws);
                             broadcastStats();
                             findMatch();
                             break;
+                        }
 
-                        case 'LEAVE_QUEUE':
+                        case 'LEAVE_QUEUE': {
                             matchmakingQueue = matchmakingQueue.filter(p => p.username !== data.username);
                             onlinePlayers.delete(data.username);
                             broadcastStats();
                             break;
+                        }
 
-                        case 'CHAT_MESSAGE':
+                        case 'CHAT_MESSAGE': {
                             if (data.to && data.message) {
                                 const targetWs = onlinePlayers.get(data.to);
                                 if (targetWs) {
@@ -104,6 +112,7 @@ async function init() {
                                 }
                             }
                             break;
+                        }
 
                         case 'FRIEND_REQUEST':
                             if (data.to) {
@@ -132,15 +141,23 @@ async function init() {
                             break;
 
                         case 'GLOBAL_CHAT': {
+                            if (!data.message) {
+                                console.error('Missing message in GLOBAL_CHAT');
+                                return;
+                            }
+
                             const user = await db.collection('users').findOne(
                                 { username: data.username },
                                 { projection: { photoUrl: 1, role: 1 } }
                             );
 
-                            if (!user) break;
+                            if (!user) {
+                                console.error('User not found:', data.username);
+                                return;
+                            }
 
                             const filteredMessage = filterMessage(data.message);
-                            
+
                             const chatMessage = {
                                 type: 'GLOBAL_CHAT',
                                 message: {
