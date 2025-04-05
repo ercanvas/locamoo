@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Locamoo
+
+A real-time location-based multiplayer game platform built with Next.js, WebSocket, and MongoDB.
+
+## Features
+
+- 🎮 Multiple Game Modes:
+  - Driving Time: Guess the travel time between two locations by car
+  - Flight Time: Estimate air travel duration between cities
+  - Weather Mode: Compare weather conditions between locations
+
+- 👥 Social Features:
+  - Global Chat with Voice Rooms
+  - Private Messaging
+  - Friend System
+  - User Profiles
+  - Premium Subscriptions
+
+- 🛠️ Technical Features:
+  - Real-time WebSocket Communication
+  - WebRTC Voice Chat
+  - MongoDB Integration
+  - JWT Authentication
+  - Mapbox Integration
+  - Role-based Access Control (Admin/Moderator)
 
 ## Getting Started
 
-First, run the development server:
-
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables in `.env`:
+```env
+MONGODB_URI=your_mongodb_uri
+NEXT_PUBLIC_WEBSOCKET_URL=your_websocket_url
+TURN_SERVER_URL=your_turn_server_url
+TURN_SERVER_USERNAME=your_username
+TURN_SERVER_PASSWORD=your_password
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run the development server:
+```bash
+npm run dev     # Next.js frontend
+npm run server  # WebSocket server
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+## Docker Support
 
-To learn more about Next.js, take a look at the following resources:
+Run with Docker Compose:
+```bash
+docker-compose up
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Frontend: Next.js 14, React, TailwindCSS
+- Backend: Node.js, WebSocket, MongoDB
+- Voice Chat: WebRTC, TURN/STUN servers
+- Maps: Mapbox GL JS
+- Authentication: JWT, Bcrypt
 
-## Deploy on Vercel
+## Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+[MIT](LICENSE) - See the license file for details.
